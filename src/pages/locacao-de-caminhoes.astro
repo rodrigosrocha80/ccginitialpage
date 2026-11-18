@@ -1,0 +1,223 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { getAssetImage } from '@/lib/images';
+import { buildFaqSchema, buildServiceCatalogSchema } from '@/lib/seo';
+import { SITE, buildWhatsAppUrl } from '@/lib/site';
+
+const allItems = (await getCollection('equipamentos'))
+  .sort((a, b) => a.data.ordem - b.data.ordem)
+  .map((e) => e.data);
+
+const caminhoes = allItems.filter(
+  (item) => item.categoria === 'Caminhões e Logística' || item.id === 'caminhao-espargidor'
+);
+
+const apoio = allItems.filter((item) => item.categoria === 'Veículos de Apoio');
+
+const faqs = [
+  {
+    pergunta: 'Quais caminhões pesados estão disponíveis para locação na CCG?',
+    resposta:
+      'Operamos caminhões basculantes (12 e 14 m³), caminhões pipa (18 e 20 m³), caminhões munck (10 a 19,5 t fechados), caminhões comboio de abastecimento e lubrificação (6, 8 e 12 m³), caminhões betoneira (8 m³), auto betoneira (4 m³), caminhão espargidor (6 m³), caminhão plataforma (até 21 t) e carreta prancha (até 45 t).',
+  },
+  {
+    pergunta: 'Vocês fazem o transporte de máquinas pesadas em carreta prancha?',
+    resposta:
+      'Sim. Nossa frota própria inclui carreta prancha 2 eixos (até 27 t) e 3 eixos (até 45 t), além de caminhão plataforma (até 21 t), garantindo mobilização planejada para canteiros no Maranhão e em outros estados.',
+  },
+  {
+    pergunta: 'É possível contratar pacote integrado de caminhões e linha amarela?',
+    resposta:
+      'Sim. Dimensionamos conjuntos completos para terraplenagem, pavimentação e logística de obra — combinando escavadeiras, basculantes, pipas, rolos e caminhão comboio com gestão SGI certificada (PROCEM, ISO 9001 e ISO 14001).',
+  },
+];
+
+const breadcrumbs = [
+  { label: 'Equipamentos', href: '/equipamentos' },
+  { label: 'Locação de Caminhões' },
+];
+
+const extraSchema = [
+  buildServiceCatalogSchema({
+    name: 'Locação de Caminhões Pesados e Logística de Obra',
+    description:
+      'Locação de caminhão basculante, pipa, munck, comboio de lubrificação, betoneira, plataforma e carreta prancha até 45 t no Maranhão e em todo o Brasil.',
+    url: `${SITE.domain}/locacao-de-caminhoes/`,
+    serviceTypes: [
+      'Locação de caminhões pesados',
+      'Locação de caminhão basculante',
+      'Locação de caminhão munck',
+      'Locação de caminhão pipa',
+      'Locação de caminhão comboio',
+      'Locação de carreta prancha',
+    ],
+  }),
+  buildFaqSchema(faqs),
+];
+---
+
+<BaseLayout
+  title="Locação de Caminhões (Basculante, Munck, Pipa, Comboio e Prancha) | CCG"
+  description="Locação de caminhões pesados em São Luís/MA e em todo o Brasil: caminhão basculante 12/14m³, pipa 18/20m³, munck até 19,5t, comboio de abastecimento, betoneira, plataforma e carreta prancha até 45t."
+  breadcrumbs={breadcrumbs}
+  extraSchema={extraSchema}
+>
+  <PageHero
+    eyebrow="Frota de Caminhões e Logística"
+    title="Locação de Caminhões Pesados para Obras e Indústria"
+    description="Caminhões basculantes, pipas, muncks, comboios de abastecimento e lubrificação, betoneiras, espargidores, plataformas e carretas prancha (até 45 t) com manutenção preventiva periódica."
+    breadcrumbs={breadcrumbs}
+  >
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a
+        href="/#orcamento"
+        class="inline-flex min-h-[48px] items-center rounded-xl bg-ccg-yellow-400 px-5 py-3 text-sm font-extrabold text-ink-primary hover:bg-ccg-yellow-500"
+      >
+        Solicitar Orçamento em 24h
+      </a>
+      <a
+        href={buildWhatsAppUrl('Olá! Preciso de orçamento para locação de caminhões pesados.')}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-[48px] items-center rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20"
+      >
+        Cotar Caminhões no WhatsApp
+      </a>
+    </div>
+  </PageHero>
+
+  <!-- Frota de caminhões -->
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Caminhões Pesados &amp; Logística
+          </p>
+          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary">
+            Caminhões disponíveis para locação imediata
+          </h2>
+        </div>
+        <a
+          href="/locacao-linha-amarela"
+          class="text-sm font-bold text-ccg-green-800 hover:underline"
+        >
+          Ver também: Locação de Linha Amarela &rarr;
+        </a>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {caminhoes.map((item) => (
+          <article class="flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md">
+            <a
+              href={`/equipamentos/${item.id}`}
+              class="flex aspect-[4/3] items-center justify-center overflow-hidden bg-white p-4"
+            >
+              <Image
+                src={getAssetImage(item.imagem)}
+                alt={`${item.nome} para locação na CCG`}
+                widths={[360]}
+                loading="lazy"
+                class="h-full w-full object-contain"
+              />
+            </a>
+            <div class="flex flex-1 flex-col border-t border-border-subtle p-5">
+              <h3 class="font-display text-xl font-bold text-ink-primary">
+                <a href={`/equipamentos/${item.id}`} class="hover:text-ccg-green-800 hover:underline">
+                  {item.nome}
+                </a>
+              </h3>
+              <p class="mt-2 text-sm leading-relaxed text-ink-secondary">{item.resumo}</p>
+
+              <dl class="mt-4 space-y-2 rounded-xl bg-surface-canvas p-3 text-xs">
+                {item.especificacoes.map((spec) => (
+                  <div class="flex flex-col gap-0.5 border-b border-border-subtle/70 pb-1.5 last:border-b-0 last:pb-0">
+                    <dt class="font-medium text-ink-muted">{spec.label}</dt>
+                    <dd class="font-semibold text-ink-primary">{spec.valor}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              <div class="mt-auto flex gap-2 pt-5">
+                <a
+                  href={`/equipamentos/${item.id}`}
+                  class="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg border border-ccg-green-800/30 bg-white px-3 py-2 text-sm font-bold text-ccg-green-900 hover:bg-ccg-green-50"
+                >
+                  Ficha técnica
+                </a>
+                <a
+                  href={`/contato?equipamento=${encodeURIComponent(item.nome)}#orcamento`}
+                  class="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg bg-ccg-green-800 px-3 py-2 text-sm font-bold text-white hover:bg-ccg-green-900"
+                >
+                  Orçar agora
+                </a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Veículos de apoio -->
+  <section class="border-t border-border-subtle bg-white py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Mobilidade de Equipes
+          </p>
+          <h2 class="mt-1 font-display text-2xl font-extrabold text-ink-primary">
+            Veículos de apoio operacional e transporte de pessoal
+          </h2>
+        </div>
+        <a href="/equipamentos/veiculos-de-apoio" class="text-sm font-bold text-ccg-green-800 hover:underline">
+          Ver categoria Veículos de Apoio &rarr;
+        </a>
+      </div>
+
+      <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {apoio.map((item) => (
+          <a
+            href={`/equipamentos/${item.id}`}
+            class="group flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-canvas p-4 transition-shadow hover:bg-white hover:shadow-md"
+          >
+            <div class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-white p-3">
+              <Image
+                src={getAssetImage(item.imagem)}
+                alt={item.nome}
+                widths={[320]}
+                loading="lazy"
+                class="h-full w-full object-contain"
+              />
+            </div>
+            <h3 class="mt-3 font-display text-base font-bold text-ink-primary group-hover:text-ccg-green-800">
+              {item.nome}
+            </h3>
+            <p class="mt-1 text-xs text-ink-secondary">{item.resumo}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="border-t border-border-subtle bg-surface-canvas py-12 sm:py-16">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold text-ink-primary sm:text-3xl">
+        Perguntas frequentes sobre locação de caminhões
+      </h2>
+      <div class="mt-6 space-y-4">
+        {faqs.map((faq) => (
+          <article class="rounded-2xl border border-border-subtle bg-white p-5">
+            <h3 class="font-display text-lg font-bold text-ink-primary">{faq.pergunta}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-secondary">{faq.resposta}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

@@ -195,7 +195,12 @@ export function EquipamentosCatalogo({ items, mode = 'home' }: EquipamentosCatal
 
                     <div className="flex flex-1 flex-col border-t border-border-subtle p-5">
                       <h3 className="font-display text-lg font-bold leading-snug text-ink-primary">
-                        {item.nome}
+                        <a
+                          href={`/equipamentos/${item.id}`}
+                          className="transition-colors hover:text-ccg-green-800 hover:underline"
+                        >
+                          {item.nome}
+                        </a>
                       </h3>
                       <p className="mt-1.5 text-sm leading-relaxed text-ink-secondary">
                         {item.resumo}
@@ -236,22 +241,32 @@ export function EquipamentosCatalogo({ items, mode = 'home' }: EquipamentosCatal
                             </svg>
                           </button>
 
-                          {isExpanded && (
-                            <ul className="mt-2 space-y-2 rounded-lg border border-border-subtle bg-ccg-green-50/60 p-3 text-xs">
-                              {item.modelosDetalhados.map((m) => (
-                                <li key={m.modelo} className="space-y-0.5">
-                                  <p className="font-bold text-ccg-green-900">{m.modelo}</p>
-                                  {m.detalhes.map((d) => (
-                                    <p key={d} className="text-ink-secondary">
-                                      {d}
-                                    </p>
-                                  ))}
-                                </li>
-                              ))}
-                            </ul>
-                          )}
+                          <ul
+                            hidden={!isExpanded}
+                            className="mt-2 space-y-2 rounded-lg border border-border-subtle bg-ccg-green-50/60 p-3 text-xs"
+                          >
+                            {item.modelosDetalhados.map((m) => (
+                              <li key={m.modelo} className="space-y-0.5">
+                                <p className="font-bold text-ccg-green-900">{m.modelo}</p>
+                                {m.detalhes.map((d) => (
+                                  <p key={d} className="text-ink-secondary">
+                                    {d}
+                                  </p>
+                                ))}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       )}
+
+                      <div className="mt-3">
+                        <a
+                          href={`/equipamentos/${item.id}`}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-ccg-green-800 hover:underline"
+                        >
+                          Ficha técnica completa <span aria-hidden="true">&rarr;</span>
+                        </a>
+                      </div>
 
                       <div className="mt-auto flex gap-2 pt-5">
                         <button

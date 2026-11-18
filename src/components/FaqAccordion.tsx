@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MotionConfig, motion, AnimatePresence } from 'motion/react';
+import { MotionConfig } from 'motion/react';
 
 export interface FaqItem {
   id: string;
@@ -54,24 +54,17 @@ export function FaqAccordion({ items }: FaqAccordionProps) {
                 </button>
               </h3>
 
-              <AnimatePresence initial={false}>
-                {isOpen && (
-                  <motion.div
-                    id={panelId}
-                    role="region"
-                    aria-labelledby={btnId}
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: 'auto', opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                    className="overflow-hidden"
-                  >
-                    <p className="pb-5 pr-8 text-base leading-relaxed text-ink-secondary">
-                      {item.resposta}
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              <div
+                id={panelId}
+                role="region"
+                aria-labelledby={btnId}
+                hidden={!isOpen}
+                className="overflow-hidden"
+              >
+                <p className="pb-5 pr-8 text-base leading-relaxed text-ink-secondary">
+                  {item.resposta}
+                </p>
+              </div>
             </div>
           );
         })}

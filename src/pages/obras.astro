@@ -11,6 +11,7 @@ const obras = (await getCollection('obras')).sort((a, b) => a.data.ordem - b.dat
 <BaseLayout
   title="Obras e Cases Realizados | CCG Locações e Terraplenagem"
   description="Conheça as obras executadas pela CCG em infraestrutura rodoviária, ferroviária, portuária, industrial, ambiental e parques fotovoltaicos no Maranhão e em outros estados."
+  breadcrumbs={[{ label: 'Obras' }]}
 >
   <PageHero
     eyebrow="Portfólio de Contratos"

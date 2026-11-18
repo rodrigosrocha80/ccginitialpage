@@ -6,7 +6,9 @@ import Footer from '@/components/Footer.astro';
 import WhatsAppFloat from '@/components/WhatsAppFloat.astro';
 import CookieConsent from '@/components/CookieConsent.astro';
 import { SITE } from '@/lib/site';
+import { buildBreadcrumbSchema } from '@/lib/seo';
 import heroDefault from '@/assets/hero/hero-obra-aerea.jpg';
+import logoCcg from '@/assets/brand/logo-ccg.png';
 import archivoLatinWoff2 from '@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url';
 import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 
@@ -14,6 +16,9 @@ interface Props {
   title: string;
   description: string;
   canonicalPath?: string;
+  ogImage?: string;
+  breadcrumbs?: { label: string; href?: string }[];
+  extraSchema?: Record<string, unknown>[];
   noindex?: boolean;
 }
 
@@ -21,49 +26,143 @@ const {
   title,
   description,
   canonicalPath = Astro.url.pathname,
+  ogImage,
+  breadcrumbs,
+  extraSchema = [],
   noindex = false,
 } = Astro.props;
 
 const canonicalUrl = new URL(canonicalPath, SITE.domain).toString();
-const ogImg = await getImage({ src: heroDefault, width: 1200, format: 'jpeg', quality: 80 });
-const ogImageUrl = new URL(ogImg.src, SITE.domain).toString();
+const defaultOgImg = await getImage({ src: heroDefault, width: 1200, format: 'jpeg', quality: 80 });
+const ogImageUrl = ogImage
+  ? new URL(ogImage, SITE.domain).toString()
+  : new URL(defaultOgImg.src, SITE.domain).toString();
+
+const logoImg = await getImage({ src: logoCcg, width: 400, format: 'png' });
+const logoUrl = new URL(logoImg.src, SITE.domain).toString();
 
 const ga4Id = import.meta.env.PUBLIC_GA4_ID || '';
 const clarityId = import.meta.env.PUBLIC_CLARITY_ID || '';
 
+const graphNodes: Record<string, unknown>[] = [
+  {
+    '@type': 'WebSite',
+    '@id': `${SITE.domain}/#website`,
+    name: SITE.brandShort,
+    alternateName: 'CCG Construções e Locações',
+    url: `${SITE.domain}/`,
+    inLanguage: 'pt-BR',
+    publisher: { '@id': `${SITE.domain}/#organization` },
+  },
+  {
+    '@type': 'Organization',
+    '@id': `${SITE.domain}/#organization`,
+    name: SITE.legalName,
+    alternateName: SITE.brandShort,
+    url: `${SITE.domain}/`,
+    logo: {
+      '@type': 'ImageObject',
+      url: logoUrl,
+    },
+    email: SITE.emailContratos,
+    taxID: SITE.cnpj,
+    foundingDate: '2003',
+    contactPoint: [
+      {
+        '@type': 'ContactPoint',
+        telephone: '+55-98-3313-9550',
+        contactType: 'sales',
+        areaServed: 'BR',
+        availableLanguage: 'Portuguese',
+      },
+      {
+        '@type': 'ContactPoint',
+        telephone: '+55-98-99988-0545',
+        contactType: 'customer service',
+        areaServed: 'BR',
+        availableLanguage: 'Portuguese',
+      },
+    ],
+    sameAs: [SITE.social.instagram, SITE.social.facebook, SITE.social.youtube],
+  },
+  {
+    '@type': 'LocalBusiness',
+    '@id': `${SITE.domain}/#localbusiness`,
+    name: `${SITE.brandShort} — ${SITE.legalName}`,
+    description:
+      'Locação de máquinas pesadas, linha amarela, caminhões pesados e execução de obras de terraplenagem, drenagem e pavimentação em São Luís/MA, no Maranhão e em todo o Brasil.',
+    url: `${SITE.domain}/`,
+    image: ogImageUrl,
+    logo: logoUrl,
+    telephone: '+55-98-3313-9550',
+    email: SITE.emailContratos,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: SITE.address.street,
+      addressLocality: SITE.address.city,
+      addressRegion: SITE.address.state,
+      addressCountry: SITE.address.country,
+    },
+    areaServed: ['Maranhão', 'Pará', 'Rio Grande do Norte', 'Amapá', 'Ceará', 'Minas Gerais', 'Brasil'],
+    knowsAbout: [
+      'Locação de máquinas pesadas',
+      'Locação de linha amarela',
+      'Locação de caminhões pesados',
+      'Escavadeira hidráulica',
+      'Pá carregadeira',
+      'Retroescavadeira',
+      'Motoniveladora',
+      'Rolo compactador',
+      'Caminhão basculante',
+      'Caminhão munck',
+      'Carreta prancha',
+      'Terraplenagem e pavimentação',
+    ],
+    hasOfferCatalog: {
+      '@type': 'OfferCatalog',
+      name: 'Locação de Máquinas Pesadas, Linha Amarela e Caminhões',
+      itemListElement: [
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Locação de Máquinas Pesadas e Linha Amarela',
+            url: `${SITE.domain}/locacao-linha-amarela/`,
+          },
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Locação de Caminhões Pesados e Logística',
+            url: `${SITE.domain}/locacao-de-caminhoes/`,
+          },
+        },
+        {
+          '@type': 'Offer',
+          itemOffered: {
+            '@type': 'Service',
+            name: 'Terraplenagem, Drenagem e Pavimentação Asfáltica',
+            url: `${SITE.domain}/#servicos`,
+          },
+        },
+      ],
+    },
+    parentOrganization: { '@id': `${SITE.domain}/#organization` },
+  },
+];
+
+if (breadcrumbs && breadcrumbs.length > 0) {
+  graphNodes.push(buildBreadcrumbSchema(breadcrumbs, canonicalPath));
+}
+
+for (const node of extraSchema) {
+  graphNodes.push(node);
+}
+
 const schemaOrg = {
   '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'Organization',
-      '@id': `${SITE.domain}/#organization`,
-      name: SITE.legalName,
-      alternateName: SITE.brandShort,
-      url: SITE.domain,
-      email: SITE.emailContratos,
-      taxID: SITE.cnpj,
-      foundingDate: '2003',
-      sameAs: [SITE.social.instagram, SITE.social.facebook, SITE.social.youtube],
-    },
-    {
-      '@type': 'LocalBusiness',
-      '@id': `${SITE.domain}/#localbusiness`,
-      name: `${SITE.brandShort} — ${SITE.legalName}`,
-      url: SITE.domain,
-      image: ogImageUrl,
-      telephone: '+55-98-3313-9550',
-      email: SITE.emailContratos,
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: SITE.address.street,
-        addressLocality: SITE.address.city,
-        addressRegion: SITE.address.state,
-        addressCountry: SITE.address.country,
-      },
-      areaServed: ['Maranhão', 'Pará', 'Rio Grande do Norte', 'Amapá', 'Ceará', 'Minas Gerais'],
-      parentOrganization: { '@id': `${SITE.domain}/#organization` },
-    },
-  ],
+  '@graph': graphNodes,
 };
 ---
 

@@ -1,0 +1,411 @@
+---
+import { Image, getImage } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { getAssetImage } from '@/lib/images';
+import {
+  EQUIPMENT_CATEGORIES,
+  getCategoryByName,
+  buildServiceCatalogSchema,
+  type CategorySeoMeta,
+} from '@/lib/seo';
+import { SITE, buildWhatsAppUrl } from '@/lib/site';
+
+export async function getStaticPaths() {
+  const entries = (await getCollection('equipamentos')).sort(
+    (a, b) => a.data.ordem - b.data.ordem
+  );
+
+  const categoryPaths = EQUIPMENT_CATEGORIES.map((category) => ({
+    params: { slug: category.slug },
+    props: {
+      kind: 'category' as const,
+      category,
+      items: entries.filter((e) => e.data.categoria === category.nome).map((e) => e.data),
+    },
+  }));
+
+  const itemPaths = entries.map((entry) => ({
+    params: { slug: entry.data.id },
+    props: {
+      kind: 'item' as const,
+      item: entry.data,
+      related: entries
+        .filter((e) => e.data.categoria === entry.data.categoria && e.data.id !== entry.data.id)
+        .map((e) => e.data),
+    },
+  }));
+
+  return [...categoryPaths, ...itemPaths];
+}
+
+type Props =
+  | {
+      kind: 'category';
+      category: CategorySeoMeta;
+      items: Awaited<ReturnType<typeof getCollection<'equipamentos'>>>[number]['data'][];
+    }
+  | {
+      kind: 'item';
+      item: Awaited<ReturnType<typeof getCollection<'equipamentos'>>>[number]['data'];
+      related: Awaited<ReturnType<typeof getCollection<'equipamentos'>>>[number]['data'][];
+    };
+
+const props = Astro.props;
+
+const isCategory = props.kind === 'category';
+const categoryMeta = isCategory ? props.category : getCategoryByName(props.item.categoria);
+
+const breadcrumbs = isCategory
+  ? [
+      { label: 'Equipamentos', href: '/equipamentos' },
+      { label: props.category.nome },
+    ]
+  : [
+      { label: 'Equipamentos', href: '/equipamentos' },
+      ...(categoryMeta
+        ? [{ label: categoryMeta.nome, href: `/equipamentos/${categoryMeta.slug}` }]
+        : []),
+      { label: props.item.nome },
+    ];
+
+const pageTitle = isCategory
+  ? props.category.seoTitle
+  : `Locação de ${props.item.nome} | CCG Locações`;
+
+const pageDescription = isCategory
+  ? props.category.seoDescription
+  : `Aluguel de ${props.item.nome} (${props.item.categoria}) na CCG Locações. ${props.item.resumo} Frota com idade < 5 anos e disponibilidade > 95% em São Luís/MA e todo o Brasil.`;
+
+let ogImageSrc: string | undefined;
+if (!isCategory) {
+  const optimizedOg = await getImage({
+    src: getAssetImage(props.item.imagem),
+    width: 1200,
+    format: 'jpeg',
+    quality: 80,
+  });
+  ogImageSrc = optimizedOg.src;
+}
+
+const pageUrl = new URL(Astro.url.pathname, SITE.domain).toString();
+
+const extraSchema: Record<string, unknown>[] = isCategory
+  ? [
+      buildServiceCatalogSchema({
+        name: props.category.h1,
+        description: props.category.seoDescription,
+        url: pageUrl,
+        serviceTypes: [
+          `Locação de ${props.category.nome}`,
+          ...props.items.map((item) => `Locação de ${item.nome}`),
+        ],
+      }),
+      {
+        '@type': 'ItemList',
+        name: props.category.nome,
+        itemListElement: props.items.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          name: item.nome,
+          url: `${SITE.domain}/equipamentos/${item.id}/`,
+        })),
+      },
+    ]
+  : [
+      {
+        '@type': 'Product',
+        name: props.item.nome,
+        category: props.item.categoria,
+        description: props.item.resumo,
+        image: ogImageSrc ? new URL(ogImageSrc, SITE.domain).toString() : undefined,
+        brand: {
+          '@type': 'Brand',
+          name: 'CCG Locações',
+        },
+        offers: {
+          '@type': 'Offer',
+          availability: 'https://schema.org/InStock',
+          priceCurrency: 'BRL',
+          businessFunction: 'http://purl.org/goodrelations/v1#LeaseOut',
+          url: pageUrl,
+          areaServed: ['Maranhão', 'Pará', 'Rio Grande do Norte', 'Amapá', 'Ceará', 'Minas Gerais', 'Brasil'],
+          seller: { '@id': `${SITE.domain}/#localbusiness` },
+        },
+        additionalProperty: props.item.especificacoes.map((spec) => ({
+          '@type': 'PropertyValue',
+          name: spec.label,
+          value: spec.valor,
+        })),
+      },
+    ];
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={pageDescription}
+  ogImage={ogImageSrc}
+  breadcrumbs={breadcrumbs}
+  extraSchema={extraSchema}
+>
+  {isCategory ? (
+    <>
+      <PageHero
+        eyebrow={`Frota CCG • ${props.category.nome}`}
+        title={props.category.h1}
+        description={props.category.intro}
+        breadcrumbs={breadcrumbs}
+      >
+        <div class="mt-6 flex flex-wrap gap-2 text-xs">
+          {EQUIPMENT_CATEGORIES.map((cat) => (
+            <a
+              href={`/equipamentos/${cat.slug}`}
+              class={`rounded-lg border px-3 py-1.5 font-semibold transition-colors ${
+                cat.slug === props.category.slug
+                  ? 'border-ccg-yellow-400 bg-ccg-yellow-400 text-ink-primary'
+                  : 'border-white/20 bg-white/10 text-white hover:bg-white/20'
+              }`}
+            >
+              {cat.nome}
+            </a>
+          ))}
+        </div>
+      </PageHero>
+
+      <section class="py-12 sm:py-16">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {props.items.map((item) => (
+              <article class="flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-card shadow-xs transition-shadow hover:shadow-md">
+                <a
+                  href={`/equipamentos/${item.id}`}
+                  class="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-white p-4"
+                >
+                  <Image
+                    src={getAssetImage(item.imagem)}
+                    alt={`${item.nome} para locação na CCG`}
+                    widths={[360, 560]}
+                    sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 30vw"
+                    loading="lazy"
+                    class="h-full w-full object-contain transition-transform duration-300 hover:scale-[1.03]"
+                  />
+                </a>
+
+                <div class="flex flex-1 flex-col border-t border-border-subtle p-5">
+                  <h2 class="font-display text-xl font-bold leading-snug text-ink-primary">
+                    <a href={`/equipamentos/${item.id}`} class="hover:text-ccg-green-800 hover:underline">
+                      {item.nome}
+                    </a>
+                  </h2>
+                  <p class="mt-2 text-sm leading-relaxed text-ink-secondary">{item.resumo}</p>
+
+                  <dl class="mt-4 space-y-2 rounded-xl bg-surface-canvas p-3 text-xs">
+                    {item.especificacoes.map((spec) => (
+                      <div class="flex flex-col gap-0.5 border-b border-border-subtle/70 pb-1.5 last:border-b-0 last:pb-0">
+                        <dt class="font-medium text-ink-muted">{spec.label}</dt>
+                        <dd class="font-semibold text-ink-primary">{spec.valor}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  {item.modelosDetalhados && item.modelosDetalhados.length > 0 && (
+                    <div class="mt-3 rounded-lg border border-border-subtle bg-ccg-green-50/60 p-3 text-xs">
+                      <p class="font-bold text-ccg-green-900">Modelos disponíveis na frota:</p>
+                      <p class="mt-1 text-ink-secondary">
+                        {item.modelosDetalhados.map((m) => m.modelo).join(' • ')}
+                      </p>
+                    </div>
+                  )}
+
+                  <div class="mt-auto flex gap-2 pt-5">
+                    <a
+                      href={`/equipamentos/${item.id}`}
+                      class="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg border border-ccg-green-800/30 bg-white px-3 py-2 text-sm font-bold text-ccg-green-900 transition-colors hover:bg-ccg-green-50"
+                    >
+                      Ficha técnica
+                    </a>
+                    <a
+                      href={`/contato?equipamento=${encodeURIComponent(item.nome)}#orcamento`}
+                      class="inline-flex min-h-[44px] flex-1 items-center justify-center rounded-lg bg-ccg-green-800 px-3 py-2 text-sm font-bold text-white transition-colors hover:bg-ccg-green-900"
+                    >
+                      Orçar agora
+                    </a>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div class="mt-12 flex flex-col items-start justify-between gap-4 rounded-2xl bg-ccg-forest p-8 text-white sm:flex-row sm:items-center">
+            <div>
+              <h2 class="font-display text-2xl font-extrabold">
+                Precisa de {props.category.nome.toLowerCase()} com mobilização rápida?
+              </h2>
+              <p class="mt-1 text-sm text-emerald-100/85">
+                Frota própria com idade média inferior a 5 anos, manutenção em campo e envio por carreta prancha em todo o Maranhão e Brasil.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <a
+                href="/#orcamento"
+                class="inline-flex min-h-[48px] items-center rounded-xl bg-ccg-yellow-400 px-5 py-3 text-sm font-extrabold text-ink-primary hover:bg-ccg-yellow-500"
+              >
+                Solicitar Orçamento em 24h
+              </a>
+              <a
+                href={buildWhatsAppUrl(`Olá! Gostaria de orçamento para locação de ${props.category.nome}.`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex min-h-[48px] items-center rounded-xl border border-white/25 px-5 py-3 text-sm font-bold text-white hover:bg-white/10"
+              >
+                WhatsApp Comercial
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </>
+  ) : (
+    <>
+      <PageHero
+        eyebrow={`Locação • ${props.item.categoria}`}
+        title={`Locação de ${props.item.nome}`}
+        description={props.item.resumo}
+        breadcrumbs={breadcrumbs}
+      />
+
+      <section class="py-12 sm:py-16">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div class="grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
+            <div class="overflow-hidden rounded-2xl border border-border-subtle bg-white p-6 shadow-xs lg:col-span-6">
+              <Image
+                src={getAssetImage(props.item.imagem)}
+                alt={`${props.item.nome} — locação de máquinas pesadas CCG`}
+                widths={[480, 760]}
+                sizes="(max-width: 1024px) 100vw, 45vw"
+                loading="eager"
+                class="aspect-[4/3] w-full object-contain"
+              />
+            </div>
+
+            <div class="space-y-6 lg:col-span-6">
+              <div>
+                <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+                  Especificações Técnicas
+                </p>
+                <h2 class="mt-1 font-display text-2xl font-extrabold text-ink-primary">
+                  Capacidades e configuração operacional
+                </h2>
+              </div>
+
+              <dl class="space-y-3 rounded-2xl border border-border-subtle bg-white p-5 shadow-xs">
+                {props.item.especificacoes.map((spec) => (
+                  <div class="flex flex-col justify-between gap-1 border-b border-border-subtle/70 pb-3 last:border-b-0 last:pb-0 sm:flex-row sm:items-center">
+                    <dt class="text-sm font-medium text-ink-muted">{spec.label}</dt>
+                    <dd class="text-sm font-bold text-ink-primary">{spec.valor}</dd>
+                  </div>
+                ))}
+              </dl>
+
+              {props.item.modelosDetalhados && props.item.modelosDetalhados.length > 0 && (
+                <div class="rounded-2xl border border-border-subtle bg-surface-canvas p-5">
+                  <h3 class="font-display text-lg font-extrabold text-ink-primary">
+                    Modelos disponíveis na frota CCG
+                  </h3>
+                  <ul class="mt-4 space-y-4">
+                    {props.item.modelosDetalhados.map((m) => (
+                      <li class="rounded-xl border border-border-subtle bg-white p-4">
+                        <p class="font-display text-base font-bold text-ccg-green-900">{m.modelo}</p>
+                        {m.detalhes.map((d) => (
+                          <p class="mt-1 text-sm text-ink-secondary">{d}</p>
+                        ))}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div class="rounded-2xl border border-ccg-green-800/20 bg-ccg-green-50 p-5">
+                <h3 class="font-display text-base font-extrabold text-ccg-green-900">
+                  Diferenciais da locação na CCG
+                </h3>
+                <ul class="mt-3 space-y-2 text-sm text-ink-secondary">
+                  <li>&bull; Frota própria com idade média inferior a 5 anos e disponibilidade &gt; 95%</li>
+                  <li>&bull; Manutenções preditiva, preventiva e corretiva com apoio de caminhão comboio</li>
+                  <li>&bull; Mobilização própria em carreta prancha (até 45 t) e caminhão plataforma</li>
+                  <li>&bull; Conformidade SGI auditada (PROCEM, ISO 9001 e ISO 14001)</li>
+                </ul>
+              </div>
+
+              <div class="flex flex-col gap-3 sm:flex-row">
+                <a
+                  href={`/contato?equipamento=${encodeURIComponent(props.item.nome)}#orcamento`}
+                  class="inline-flex min-h-[50px] flex-1 items-center justify-center rounded-xl bg-ccg-green-800 px-6 py-3 text-base font-extrabold text-white transition-colors hover:bg-ccg-green-900"
+                >
+                  Solicitar Orçamento em 24h
+                </a>
+                <a
+                  href={buildWhatsAppUrl(
+                    `Olá! Gostaria de verificar disponibilidade e cotação para locação de ${props.item.nome}.`
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex min-h-[50px] flex-1 items-center justify-center rounded-xl border border-ccg-green-800 bg-white px-6 py-3 text-base font-bold text-ccg-green-900 transition-colors hover:bg-ccg-green-50"
+                >
+                  Cotar via WhatsApp
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {props.related.length > 0 && (
+            <div class="mt-16 border-t border-border-subtle pt-12">
+              <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
+                <div>
+                  <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+                    Mesma Categoria
+                  </p>
+                  <h2 class="mt-1 font-display text-2xl font-extrabold text-ink-primary">
+                    Outros equipamentos em {props.item.categoria}
+                  </h2>
+                </div>
+                {categoryMeta && (
+                  <a
+                    href={`/equipamentos/${categoryMeta.slug}`}
+                    class="text-sm font-bold text-ccg-green-800 hover:underline"
+                  >
+                    Ver todos em {categoryMeta.nome} &rarr;
+                  </a>
+                )}
+              </div>
+
+              <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                {props.related.slice(0, 4).map((rel) => (
+                  <a
+                    href={`/equipamentos/${rel.id}`}
+                    class="group flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-white p-4 shadow-xs transition-shadow hover:shadow-md"
+                  >
+                    <div class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-surface-canvas p-3">
+                      <Image
+                        src={getAssetImage(rel.imagem)}
+                        alt={rel.nome}
+                        widths={[320]}
+                        loading="lazy"
+                        class="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                      />
+                    </div>
+                    <h3 class="mt-3 font-display text-base font-bold text-ink-primary group-hover:text-ccg-green-800">
+                      {rel.nome}
+                    </h3>
+                    <p class="mt-1 line-clamp-2 text-xs text-ink-secondary">{rel.resumo}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    </>
+  )}
+</BaseLayout>

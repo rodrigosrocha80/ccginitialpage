@@ -27,13 +27,13 @@ export default defineConfig({
     '/nossa-politica.html': { status: 301, destination: '/politica-integrada' },
     '/contatos.html': { status: 301, destination: '/contato' },
     '/trabalhe-conosco.html': { status: 301, destination: '/trabalhe-conosco' },
-    // Subpáginas antigas de equipamentos
-    '/escavadeira-hidraulica.html': { status: 301, destination: '/equipamentos#escavadeiras' },
-    '/miniescavadeira.html': { status: 301, destination: '/equipamentos#escavadeiras' },
-    '/carregadeiras.html': { status: 301, destination: '/equipamentos#carregadeiras' },
-    '/minicarregadeira.html': { status: 301, destination: '/equipamentos#carregadeiras' },
-    '/retroescavadeira.html': { status: 301, destination: '/equipamentos#retroescavadeiras' },
-    '/motoniveladora.html': { status: 301, destination: '/equipamentos#tratores-e-nivelamento' },
+    // Subpáginas antigas de equipamentos -> páginas dedicadas por máquina/categoria
+    '/escavadeira-hidraulica.html': { status: 301, destination: '/equipamentos/escavadeira-hidraulica-concha' },
+    '/miniescavadeira.html': { status: 301, destination: '/equipamentos/mini-escavadeira-esteira' },
+    '/carregadeiras.html': { status: 301, destination: '/equipamentos/carregadeiras' },
+    '/minicarregadeira.html': { status: 301, destination: '/equipamentos/mini-carregadeira' },
+    '/retroescavadeira.html': { status: 301, destination: '/equipamentos/retroescavadeiras' },
+    '/motoniveladora.html': { status: 301, destination: '/equipamentos/motoniveladora' },
     // Subpáginas antigas de obras
     '/obra-barreirinhas.html': { status: 301, destination: '/obras#barreirinhas-sectur' },
     '/obra-sneff.html': { status: 301, destination: '/obras#areia-branca-snef' },

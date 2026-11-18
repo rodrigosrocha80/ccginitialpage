@@ -3,30 +3,70 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
 import { EquipamentosCatalogo } from '@/components/EquipamentosCatalogo';
 import { loadEquipamentosView } from '@/lib/equipamentosView';
-import { buildWhatsAppUrl } from '@/lib/site';
+import { EQUIPMENT_CATEGORIES, buildServiceCatalogSchema } from '@/lib/seo';
+import { SITE, buildWhatsAppUrl } from '@/lib/site';
 
 const equipamentos = await loadEquipamentosView();
+const breadcrumbs = [{ label: 'Equipamentos' }];
+
+const extraSchema = [
+  buildServiceCatalogSchema({
+    name: 'Catálogo de Equipamentos de Linha Amarela e Caminhões Pesados',
+    description:
+      'Catálogo completo de locação de máquinas pesadas, linha amarela e caminhões da CCG Locações em São Luís/MA e todo o Brasil.',
+    url: `${SITE.domain}/equipamentos/`,
+    serviceTypes: EQUIPMENT_CATEGORIES.map((c) => `Locação de ${c.nome}`),
+  }),
+  {
+    '@type': 'ItemList',
+    name: 'Equipamentos para locação na CCG',
+    itemListElement: equipamentos.map((eq, idx) => ({
+      '@type': 'ListItem',
+      position: idx + 1,
+      name: eq.nome,
+      url: `${SITE.domain}/equipamentos/${eq.id}/`,
+    })),
+  },
+];
 ---
 
 <BaseLayout
-  title="Equipamentos e Frota Linha Amarela | CCG Locações"
+  title="Locação de Equipamentos, Linha Amarela e Caminhões | CCG Locações"
   description="Consulte o catálogo completo da frota CCG: escavadeiras hidráulicas, pás carregadeiras, retroescavadeiras, motoniveladoras, rolos compactadores, usina de asfalto móvel e caminhões."
+  breadcrumbs={breadcrumbs}
+  extraSchema={extraSchema}
 >
   <PageHero
     eyebrow="Catálogo Técnico da Frota"
     title="Equipamentos de linha amarela, caminhões e veículos de apoio"
     description="Frota moderna com idade média inferior a 5 anos e rotina periódica de manutenção preditiva, preventiva e corretiva. Solicite cotação direta por equipamento."
-    breadcrumbs={[{ label: 'Equipamentos' }]}
+    breadcrumbs={breadcrumbs}
   >
     <div class="mt-6 flex flex-wrap gap-2 text-xs">
-      <a href="#escavadeiras" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Escavadeiras</a>
-      <a href="#carregadeiras" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Carregadeiras</a>
-      <a href="#retroescavadeiras" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Retroescavadeiras</a>
-      <a href="#tratores-e-nivelamento" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Motoniveladoras e Tratores</a>
+      <a
+        href="/locacao-linha-amarela"
+        class="rounded-lg border border-ccg-yellow-400 bg-ccg-yellow-400 px-3 py-1.5 font-extrabold text-ink-primary hover:bg-ccg-yellow-500"
+      >
+        Linha Amarela
+      </a>
+      <a
+        href="/locacao-de-caminhoes"
+        class="rounded-lg border border-ccg-yellow-400/50 bg-ccg-yellow-400/15 px-3 py-1.5 font-bold text-ccg-yellow-400 hover:bg-ccg-yellow-400/25"
+      >
+        Caminhões Pesados
+      </a>
+      {EQUIPMENT_CATEGORIES.map((cat) => (
+        <a
+          href={`/equipamentos/${cat.slug}`}
+          class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20"
+        >
+          {cat.nome}
+        </a>
+      ))}
     </div>
   </PageHero>
 
-  <!-- Âncoras para redirecionamentos 301 das subpáginas antigas -->
+  <!-- Âncoras preservadas para compatibilidade de links -->
   <div id="escavadeiras" class="sr-only">Seção de Escavadeiras</div>
   <div id="carregadeiras" class="sr-only">Seção de Carregadeiras</div>
   <div id="retroescavadeiras" class="sr-only">Seção de Retroescavadeiras</div>

@@ -1,0 +1,215 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { getAssetImage } from '@/lib/images';
+import {
+  EQUIPMENT_CATEGORIES,
+  buildFaqSchema,
+  buildServiceCatalogSchema,
+} from '@/lib/seo';
+import { SITE, buildWhatsAppUrl } from '@/lib/site';
+
+const LINHA_AMARELA_CATS = new Set([
+  'Escavadeiras',
+  'Carregadeiras',
+  'Retroescavadeiras',
+  'Tratores e Nivelamento',
+  'Compactação',
+  'Pavimentação',
+]);
+
+const equipamentos = (await getCollection('equipamentos'))
+  .sort((a, b) => a.data.ordem - b.data.ordem)
+  .filter((e) => LINHA_AMARELA_CATS.has(e.data.categoria))
+  .map((e) => e.data);
+
+const categories = EQUIPMENT_CATEGORIES.filter((c) => LINHA_AMARELA_CATS.has(c.nome));
+
+const faqs = [
+  {
+    pergunta: 'Quais máquinas de linha amarela a CCG disponibiliza para locação?',
+    resposta:
+      'Disponibilizamos escavadeiras hidráulicas (16,4 t a 38,4 t, braço longo 15 m, rompedor, anfíbia, rodoferroviária e mini escavadeira), pás carregadeiras (1,8 a 3,0 m³), retroescavadeiras 4x4, motoniveladoras, tratores de esteira (até 24 t), rolos compactadores, vibroacabadoras, fresadoras e usina de asfalto móvel.',
+  },
+  {
+    pergunta: 'A locação de máquinas pesadas inclui manutenção em campo e mobilização?',
+    resposta:
+      'Sim. Toda a frota tem idade média inferior a 5 anos e passa por manutenção preditiva, preventiva e corretiva periódica, com caminhões comboio para abastecimento e lubrificação na frente de obra e mobilização própria por carreta prancha até 45 t.',
+  },
+  {
+    pergunta: 'A CCG atende locação de linha amarela apenas no Maranhão?',
+    resposta:
+      'Nossa sede fica em São Luís/MA, atendendo todo o Maranhão e contratos em todo o Brasil, com atuação comprovada no Pará, Rio Grande do Norte, Amapá, Ceará e Minas Gerais.',
+  },
+];
+
+const breadcrumbs = [
+  { label: 'Equipamentos', href: '/equipamentos' },
+  { label: 'Locação de Linha Amarela' },
+];
+
+const extraSchema = [
+  buildServiceCatalogSchema({
+    name: 'Locação de Máquinas Pesadas e Linha Amarela',
+    description:
+      'Aluguel de máquinas pesadas e linha amarela com idade média inferior a 5 anos, disponibilidade superior a 95%, manutenção em campo e mobilização própria.',
+    url: `${SITE.domain}/locacao-linha-amarela/`,
+    serviceTypes: [
+      'Locação de máquinas pesadas',
+      'Locação de linha amarela',
+      'Locação de escavadeira hidráulica',
+      'Locação de pá carregadeira',
+      'Locação de motoniveladora',
+      'Locação de retroescavadeira',
+      'Locação de rolo compactador',
+    ],
+  }),
+  buildFaqSchema(faqs),
+];
+---
+
+<BaseLayout
+  title="Locação de Máquinas Pesadas e Linha Amarela | São Luís/MA e Brasil | CCG"
+  description="Locação de máquinas pesadas e linha amarela no Maranhão e em todo o Brasil: escavadeiras hidráulicas, pás carregadeiras, retroescavadeiras, motoniveladoras, tratores e rolos compactadores com > 95% de disponibilidade."
+  breadcrumbs={breadcrumbs}
+  extraSchema={extraSchema}
+>
+  <PageHero
+    eyebrow="Frota Pesada • Linha Amarela"
+    title="Locação de Máquinas Pesadas e Linha Amarela"
+    description="Mais de 200 máquinas pesadas na unidade de locação (frota corporativa acima de 600 equipamentos), com idade média inferior a 5 anos, disponibilidade > 95% e manutenção preventiva em campo."
+    breadcrumbs={breadcrumbs}
+  >
+    <div class="mt-6 flex flex-wrap gap-3">
+      <a
+        href="/#orcamento"
+        class="inline-flex min-h-[48px] items-center rounded-xl bg-ccg-yellow-400 px-5 py-3 text-sm font-extrabold text-ink-primary hover:bg-ccg-yellow-500"
+      >
+        Solicitar Orçamento em 24h
+      </a>
+      <a
+        href={buildWhatsAppUrl('Olá! Preciso de orçamento para locação de máquinas pesadas / linha amarela.')}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-[48px] items-center rounded-xl border border-white/25 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20"
+      >
+        Falar no WhatsApp
+      </a>
+    </div>
+  </PageHero>
+
+  <!-- Categorias de Linha Amarela -->
+  <section class="border-b border-border-subtle bg-white py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+          Famílias de Equipamentos
+        </p>
+        <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary">
+          Escolha a família de linha amarela para sua obra
+        </h2>
+        <p class="mt-2 text-base text-ink-secondary">
+          Atendemos construtoras, mineração, portos, ferrovias, energia solar, indústria e prefeituras em São Luís, interior do Maranhão e outros estados.
+        </p>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {categories.map((cat) => (
+          <a
+            href={`/equipamentos/${cat.slug}`}
+            class="group flex flex-col justify-between rounded-2xl border border-border-subtle bg-surface-canvas p-6 transition-all hover:border-ccg-green-700 hover:bg-white hover:shadow-md"
+          >
+            <div>
+              <h3 class="font-display text-xl font-extrabold text-ink-primary group-hover:text-ccg-green-800">
+                {cat.shortTitle}
+              </h3>
+              <p class="mt-2 text-sm leading-relaxed text-ink-secondary">{cat.intro}</p>
+            </div>
+            <span class="mt-4 inline-flex items-center gap-1 text-sm font-bold text-ccg-green-800">
+              Ver modelos e fichas técnicas &rarr;
+            </span>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Lista completa de Linha Amarela -->
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Frota Disponível
+          </p>
+          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary">
+            {equipamentos.length} configurações de máquinas pesadas e linha amarela
+          </h2>
+        </div>
+        <a
+          href="/locacao-de-caminhoes"
+          class="text-sm font-bold text-ccg-green-800 hover:underline"
+        >
+          Ver também: Locação de Caminhões Pesados &rarr;
+        </a>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {equipamentos.map((item) => (
+          <article class="flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md">
+            <a
+              href={`/equipamentos/${item.id}`}
+              class="flex aspect-[4/3] items-center justify-center overflow-hidden bg-white p-4"
+            >
+              <Image
+                src={getAssetImage(item.imagem)}
+                alt={`${item.nome} — locação CCG`}
+                widths={[320]}
+                loading="lazy"
+                class="h-full w-full object-contain"
+              />
+            </a>
+            <div class="flex flex-1 flex-col border-t border-border-subtle p-4">
+              <p class="text-[11px] font-bold uppercase tracking-wider text-ccg-green-800">
+                {item.categoria}
+              </p>
+              <h3 class="mt-1 font-display text-base font-bold text-ink-primary">
+                <a href={`/equipamentos/${item.id}`} class="hover:text-ccg-green-800 hover:underline">
+                  {item.nome}
+                </a>
+              </h3>
+              <p class="mt-1.5 text-xs leading-relaxed text-ink-secondary">{item.resumo}</p>
+              <div class="mt-auto pt-4">
+                <a
+                  href={`/equipamentos/${item.id}`}
+                  class="inline-flex min-h-[40px] w-full items-center justify-center rounded-lg bg-ccg-green-800 px-3 py-2 text-xs font-bold text-white hover:bg-ccg-green-900"
+                >
+                  Ver especificações e cotar
+                </a>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ específico -->
+  <section class="border-t border-border-subtle bg-white py-12 sm:py-16">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <h2 class="font-display text-2xl font-extrabold text-ink-primary sm:text-3xl">
+        Dúvidas sobre locação de linha amarela e máquinas pesadas
+      </h2>
+      <div class="mt-6 space-y-4">
+        {faqs.map((faq) => (
+          <article class="rounded-2xl border border-border-subtle bg-surface-canvas p-5">
+            <h3 class="font-display text-lg font-bold text-ink-primary">{faq.pergunta}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-secondary">{faq.resposta}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

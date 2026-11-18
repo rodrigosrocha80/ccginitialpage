@@ -9,6 +9,7 @@ import CertificadoSeal from '@/components/CertificadoSeal.astro';
 import MotionReveal from '@/components/MotionReveal.astro';
 import { loadEquipamentosView } from '@/lib/equipamentosView';
 import { getAssetImage } from '@/lib/images';
+import { EQUIPMENT_CATEGORIES, buildFaqSchema, buildServiceCatalogSchema } from '@/lib/seo';
 import { SITE, buildWhatsAppUrl } from '@/lib/site';
 
 import heroObra from '@/assets/hero/hero-obra-aerea.jpg';
@@ -22,7 +23,9 @@ const featuredObras = obras.filter((o) => o.data.destaque);
 const faqItems = (await getCollection('faq'))
   .sort((a, b) => a.data.ordem - b.data.ordem)
   .map((f) => f.data);
-const depoimentos = (await getCollection('depoimentos')).sort((a, b) => a.data.ordem - b.data.ordem);
+const depoimentos = (await getCollection('depoimentos'))
+  .sort((a, b) => a.data.ordem - b.data.ordem)
+  .filter((d) => d.data.status === 'verificado');
 const clientes = (await getCollection('clientes'))
   .sort((a, b) => a.data.ordem - b.data.ordem)
   .filter((c) => c.data.destaque);
@@ -54,11 +57,28 @@ const processSteps = [
 ];
 
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+
+const homeExtraSchema = [
+  buildFaqSchema(faqItems),
+  buildServiceCatalogSchema({
+    name: 'Locação de Máquinas Pesadas, Linha Amarela e Caminhões',
+    description:
+      'Locação de escavadeiras, pás carregadeiras, retroescavadeiras, motoniveladoras, rolos compactadores, caminhões basculantes, pipas, muncks, comboios e carretas prancha no Maranhão e em todo o Brasil.',
+    url: `${SITE.domain}/`,
+    serviceTypes: [
+      'Locação de máquinas pesadas',
+      'Locação de linha amarela',
+      'Locação de caminhões pesados',
+      'Terraplenagem e pavimentação asfáltica',
+    ],
+  }),
+];
 ---
 
 <BaseLayout
-  title="CCG Locações e Terraplenagem | Máquinas Pesadas e Linha Amarela em São Luís/MA"
-  description="Locação de máquinas pesadas, linha amarela, caminhões e execução de terraplenagem e pavimentação no Maranhão e em todo o Brasil. Frota com idade < 5 anos e disponibilidade > 95%. Orçamento em 24h."
+  title="Locação de Máquinas Pesadas, Linha Amarela e Caminhões | CCG Locações"
+  description="Locação de máquinas pesadas, linha amarela, caminhões e execução de terraplenagem e pavimentação em São Luís/MA, Maranhão e todo o Brasil. Frota com idade < 5 anos e disponibilidade > 95%. Orçamento em 24h."
+  extraSchema={homeExtraSchema}
 >
   <!-- 1. HERO -->
   <section class="relative overflow-hidden bg-ccg-forest bg-grid-industrial text-white">
@@ -70,17 +90,18 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
     <div class="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-12 lg:px-8 lg:py-20">
       <div class="lg:col-span-6">
         <p class="inline-flex items-center gap-2 rounded-full border border-ccg-yellow-400/35 bg-ccg-yellow-400/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-ccg-yellow-400">
-          São Luís / Maranhão &bull; Desde 2003
+          São Luís / Maranhão &bull; Atendimento Nacional &bull; Desde 2003
         </p>
 
-        <h1 class="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
-          Frota pesada pronta para sua obra no Maranhão
+        <h1 class="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.15rem]">
+          Locação de máquinas pesadas, linha amarela e caminhões
         </h1>
 
         <p class="mt-5 max-w-xl text-base leading-relaxed text-emerald-100/90 sm:text-lg">
-          Locação de linha amarela, caminhões e execução de terraplenagem com idade média inferior a
-          <strong class="text-white">5 anos</strong>, manutenção preventiva em campo e disponibilidade
-          comprovada acima de <strong class="text-white">95%</strong>.
+          Escavadeiras, carregadeiras, motoniveladoras, rolos compactadores, caminhões basculantes,
+          munck, pipa e prancha para sua obra no Maranhão e em todo o Brasil. Frota com idade média
+          inferior a <strong class="text-white">5 anos</strong> e disponibilidade acima de{' '}
+          <strong class="text-white">95%</strong>.
         </p>
 
         <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -249,6 +270,29 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
           Filtre por categoria ou pesquise por capacidade técnica. Todos os equipamentos passam por
           inspeção periódica preditiva, preventiva e corretiva antes da mobilização.
         </p>
+      </div>
+
+      <div class="mt-5 flex flex-wrap gap-2 text-xs">
+        <a
+          href="/locacao-linha-amarela"
+          class="inline-flex min-h-[36px] items-center rounded-lg bg-ccg-green-800 px-3.5 py-1.5 font-bold text-white hover:bg-ccg-green-900"
+        >
+          Locação de Linha Amarela
+        </a>
+        <a
+          href="/locacao-de-caminhoes"
+          class="inline-flex min-h-[36px] items-center rounded-lg bg-ccg-forest px-3.5 py-1.5 font-bold text-ccg-yellow-400 hover:bg-ccg-green-900"
+        >
+          Locação de Caminhões Pesados
+        </a>
+        {EQUIPMENT_CATEGORIES.map((cat) => (
+          <a
+            href={`/equipamentos/${cat.slug}`}
+            class="inline-flex min-h-[36px] items-center rounded-lg border border-border-subtle bg-white px-3 py-1.5 font-semibold text-ink-secondary transition-colors hover:border-ccg-green-700 hover:text-ccg-green-900"
+          >
+            {cat.nome}
+          </a>
+        ))}
       </div>
 
       <div class="mt-8">
@@ -519,49 +563,40 @@ const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
     </div>
   </section>
 
-  <!-- 8. DEPOIMENTOS (PLACEHOLDERS MARCADOS SEM INVENÇÃO) -->
-  <section id="depoimentos" class="py-16 sm:py-20">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div class="max-w-2xl">
-          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
-            Avaliação de Contratantes
-          </p>
-          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
-            Espaço reservado para depoimentos reais de clientes
-          </h2>
-          <p class="mt-2 text-sm text-ink-secondary">
-            Conforme diretriz editorial de veracidade, nenhum depoimento é fabricado. Substitua os
-            blocos em <code class="rounded bg-surface-muted px-1.5 py-0.5 text-xs">src/data/depoimentos.json</code> pelos relatos autorizados.
-          </p>
+  <!-- 8. DEPOIMENTOS VERIFICADOS -->
+  {depoimentos.length > 0 && (
+    <section id="depoimentos" class="py-16 sm:py-20">
+      <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+          <div class="max-w-2xl">
+            <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+              Avaliação de Contratantes
+            </p>
+            <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+              O que dizem quem contrata a CCG em obra
+            </h2>
+          </div>
         </div>
-      </div>
 
-      <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-        {depoimentos.map((dep) => (
-          <blockquote class="flex flex-col justify-between rounded-2xl border border-dashed border-ccg-green-800/35 bg-white p-6">
-            <div>
-              {dep.data.status === 'placeholder' && (
-                <span class="inline-block rounded-md bg-amber-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-900">
-                  Placeholder — Aguardando aprovação
-                </span>
-              )}
-              <p class="mt-3 text-sm leading-relaxed text-ink-secondary">
+        <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+          {depoimentos.map((dep) => (
+            <blockquote class="flex flex-col justify-between rounded-2xl border border-border-subtle bg-white p-6 shadow-xs">
+              <p class="text-sm leading-relaxed text-ink-secondary">
                 &ldquo;{dep.data.texto}&rdquo;
               </p>
-            </div>
-            <footer class="mt-5 border-t border-border-subtle pt-4 text-xs">
-              <p class="font-bold text-ink-primary">{dep.data.nome}</p>
-              <p class="text-ink-secondary">
-                {dep.data.cargo} &bull; {dep.data.empresa}
-              </p>
-              <p class="mt-0.5 font-medium text-ccg-green-800">{dep.data.obraRelacionada}</p>
-            </footer>
-          </blockquote>
-        ))}
+              <footer class="mt-5 border-t border-border-subtle pt-4 text-xs">
+                <p class="font-bold text-ink-primary">{dep.data.nome}</p>
+                <p class="text-ink-secondary">
+                  {dep.data.cargo} &bull; {dep.data.empresa}
+                </p>
+                <p class="mt-0.5 font-medium text-ccg-green-800">{dep.data.obraRelacionada}</p>
+              </footer>
+            </blockquote>
+          ))}
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
+  )}
 
   <!-- 9. FAQ -->
   <section id="faq" class="border-t border-border-subtle bg-white py-16 sm:py-20">

@@ -11,6 +11,7 @@ const clientes = (await getCollection('clientes')).sort((a, b) => a.data.ordem -
 <BaseLayout
   title="Clientes e Parceiros | CCG Locações e Terraplenagem"
   description="Principais clientes e parceiros atendidos pela CCG Construções e Locações em mineração, indústria, portos, ferrovias, energia e infraestrutura pública."
+  breadcrumbs={[{ label: 'Clientes' }]}
 >
   <PageHero
     eyebrow="Relacionamento Corporativo e Público"
