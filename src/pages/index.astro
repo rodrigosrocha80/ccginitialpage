@@ -9,7 +9,7 @@ import CertificadoSeal from '@/components/CertificadoSeal.astro';
 import MotionReveal from '@/components/MotionReveal.astro';
 import { loadEquipamentosView } from '@/lib/equipamentosView';
 import { getAssetImage } from '@/lib/images';
-import { EQUIPMENT_CATEGORIES, buildFaqSchema, buildServiceCatalogSchema } from '@/lib/seo';
+import { buildFaqSchema, buildServiceCatalogSchema } from '@/lib/seo';
 import { SITE, buildWhatsAppUrl } from '@/lib/site';
 
 import heroObra from '@/assets/hero/hero-obra-aerea.jpg';
@@ -259,40 +259,34 @@ const homeExtraSchema = [
   <!-- 3. CATÁLOGO INTERATIVO DA FROTA -->
   <section id="frota" class="py-16 sm:py-20">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div class="max-w-3xl">
-        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
-          Portfólio de Equipamentos
-        </p>
-        <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
-          Linha amarela, caminhões e apoio operacional para cada etapa da obra
-        </h2>
-        <p class="mt-3 text-base leading-relaxed text-ink-secondary">
-          Filtre por categoria ou pesquise por capacidade técnica. Todos os equipamentos passam por
-          inspeção periódica preditiva, preventiva e corretiva antes da mobilização.
-        </p>
-      </div>
+      <div class="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+        <div class="max-w-2xl">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Portfólio de Equipamentos
+          </p>
+          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+            Linha amarela, caminhões e apoio operacional para cada etapa da obra
+          </h2>
+          <p class="mt-3 text-base leading-relaxed text-ink-secondary">
+            Filtre por categoria ou pesquise por capacidade técnica. Todos os equipamentos passam por
+            inspeção periódica preditiva, preventiva e corretiva antes da mobilização.
+          </p>
+        </div>
 
-      <div class="mt-5 flex flex-wrap gap-2 text-xs">
-        <a
-          href="/locacao-linha-amarela"
-          class="inline-flex min-h-[36px] items-center rounded-lg bg-ccg-green-800 px-3.5 py-1.5 font-bold text-white hover:bg-ccg-green-900"
-        >
-          Locação de Linha Amarela
-        </a>
-        <a
-          href="/locacao-de-caminhoes"
-          class="inline-flex min-h-[36px] items-center rounded-lg bg-ccg-forest px-3.5 py-1.5 font-bold text-ccg-yellow-400 hover:bg-ccg-green-900"
-        >
-          Locação de Caminhões Pesados
-        </a>
-        {EQUIPMENT_CATEGORIES.map((cat) => (
+        <div class="flex flex-wrap gap-2.5 lg:shrink-0">
           <a
-            href={`/equipamentos/${cat.slug}`}
-            class="inline-flex min-h-[36px] items-center rounded-lg border border-border-subtle bg-white px-3 py-1.5 font-semibold text-ink-secondary transition-colors hover:border-ccg-green-700 hover:text-ccg-green-900"
+            href="/locacao-linha-amarela"
+            class="inline-flex min-h-[44px] items-center rounded-xl bg-ccg-green-800 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-ccg-green-900 sm:text-sm"
           >
-            {cat.nome}
+            Locação de Linha Amarela &rarr;
           </a>
-        ))}
+          <a
+            href="/locacao-de-caminhoes"
+            class="inline-flex min-h-[44px] items-center rounded-xl bg-ccg-forest px-4 py-2 text-xs font-bold text-ccg-yellow-400 transition-colors hover:bg-ccg-green-900 sm:text-sm"
+          >
+            Locação de Caminhões Pesados &rarr;
+          </a>
+        </div>
       </div>
 
       <div class="mt-8">

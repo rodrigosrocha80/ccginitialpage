@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { MotionConfig, motion, AnimatePresence } from 'motion/react';
 import type { EquipamentoView } from '@/lib/equipamentosView';
+import { getCategoryByName } from '@/lib/seo';
 import { buildWhatsAppUrl } from '@/lib/site';
 
 interface EquipamentosCatalogoProps {
@@ -61,6 +62,9 @@ export function EquipamentosCatalogo({ items, mode = 'home' }: EquipamentosCatal
     }
   };
 
+  const activeCategoryMeta =
+    selectedCategory !== 'Todas' ? getCategoryByName(selectedCategory) : undefined;
+
   return (
     <MotionConfig reducedMotion="user">
       <div className="space-y-6">
@@ -115,12 +119,20 @@ export function EquipamentosCatalogo({ items, mode = 'home' }: EquipamentosCatal
         </div>
 
         {/* Contagem e estado vazio */}
-        <div className="flex items-center justify-between text-sm text-ink-secondary">
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-ink-secondary">
           <p>
             Exibindo <strong className="text-ink-primary">{visibleItems.length}</strong> de{' '}
             <strong className="text-ink-primary">{filtered.length}</strong> equipamentos
             {selectedCategory !== 'Todas' ? ` em ${selectedCategory}` : ''}.
           </p>
+          {activeCategoryMeta && (
+            <a
+              href={`/equipamentos/${activeCategoryMeta.slug}`}
+              className="inline-flex min-h-[36px] items-center font-semibold text-ccg-green-800 underline-offset-4 hover:underline"
+            >
+              Ver página de {activeCategoryMeta.nome} &rarr;
+            </a>
+          )}
           {mode === 'home' && !showAllOnHome && selectedCategory === 'Todas' && query === '' && (
             <button
               type="button"
