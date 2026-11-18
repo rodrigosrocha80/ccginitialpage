@@ -1,0 +1,69 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { getAssetImage } from '@/lib/images';
+
+const obras = (await getCollection('obras')).sort((a, b) => a.data.ordem - b.data.ordem);
+---
+
+<BaseLayout
+  title="Obras e Cases Realizados | CCG Locações e Terraplenagem"
+  description="Conheça as obras executadas pela CCG em infraestrutura rodoviária, ferroviária, portuária, industrial, ambiental e parques fotovoltaicos no Maranhão e em outros estados."
+>
+  <PageHero
+    eyebrow="Portfólio de Contratos"
+    title="Obras entregues com precisão técnica e prazo"
+    description="Experiência comprovada em projetos de terraplenagem, pavimentação, drenagem, energia solar, portos e ferrovias para grandes players privados e setor público."
+    breadcrumbs={[{ label: 'Obras' }]}
+  />
+
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {obras.map((obra) => (
+          <article
+            id={obra.data.id}
+            class="flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md"
+          >
+            <div class="relative aspect-[16/10] overflow-hidden bg-surface-muted">
+              <Image
+                src={getAssetImage(obra.data.imagem)}
+                alt={`${obra.data.titulo} (${obra.data.local}/${obra.data.estado})`}
+                widths={[480, 760]}
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading="lazy"
+                class="h-full w-full object-cover"
+              />
+              <span class="absolute left-3 top-3 rounded-md bg-ccg-forest/90 px-2.5 py-1 text-xs font-bold text-ccg-yellow-400">
+                {obra.data.cliente} &bull; {obra.data.estado}
+              </span>
+            </div>
+
+            <div class="flex flex-1 flex-col p-6">
+              <p class="text-xs font-semibold uppercase tracking-wider text-ccg-green-800">
+                {obra.data.setor} &bull; {obra.data.local}/{obra.data.estado}
+              </p>
+              <h2 class="mt-1.5 font-display text-xl font-bold text-ink-primary">
+                {obra.data.titulo}
+              </h2>
+              <p class="mt-2 text-sm leading-relaxed text-ink-secondary">
+                {obra.data.contexto}
+              </p>
+
+              <ul class="mt-4 space-y-2 border-t border-border-subtle pt-4 text-xs font-medium text-ink-primary">
+                {obra.data.resultados.map((res) => (
+                  <li class="flex items-start gap-2">
+                    <span class="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-ccg-green-700" aria-hidden="true"></span>
+                    <span>{res}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

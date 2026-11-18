@@ -1,0 +1,47 @@
+[
+  {
+    "id": "procem",
+    "sigla": "PROCEM",
+    "norma": "PDF Maranhão • Qualificação de Fornecedores",
+    "nome": "Programa de Certificação de Empresas",
+    "categoria": "Qualificação Empresarial",
+    "pilarSgi": "Gestão Integrada & Fornecimento",
+    "resumo": "Certificação estadual vinculada ao Programa de Desenvolvimento de Fornecedores do Maranhão (PDF-MA), que atesta a conformidade cadastral, gerencial e operacional da CCG para atender grandes cadeias industriais e obras estruturantes.",
+    "destaques": [
+      "Habilitação qualificada para grandes contratantes industriais, portuários e de mineração no Maranhão",
+      "Avaliação rigorosa de processos gerenciais, documentação fiscal, trabalhista e conformidade em SST",
+      "Compromisso contínuo com excelência operacional e desenvolvimento regional sustentável"
+    ],
+    "ordem": 1
+  },
+  {
+    "id": "iso-9001",
+    "sigla": "ISO 9001",
+    "norma": "Sistema de Gestão da Qualidade",
+    "nome": "Certificação ISO 9001",
+    "categoria": "Qualidade",
+    "pilarSgi": "Qualidade",
+    "resumo": "Padrão internacional de Gestão da Qualidade que assegura padronização de processos, rastreabilidade na manutenção da frota e foco permanente na satisfação dos clientes em locação de máquinas e execução de obras.",
+    "destaques": [
+      "Padronização de procedimentos de locação, mobilização e assistência técnica em campo",
+      "Gestão orientada a indicadores reais: disponibilidade operacional acima de 95% e frota moderna",
+      "Melhoria contínua dos serviços para atender integralmente aos requisitos contratuais"
+    ],
+    "ordem": 2
+  },
+  {
+    "id": "iso-14001",
+    "sigla": "ISO 14001",
+    "norma": "Sistema de Gestão Ambiental",
+    "nome": "Certificação ISO 14001",
+    "categoria": "Meio Ambiente",
+    "pilarSgi": "Meio Ambiente",
+    "resumo": "Norma internacional de Gestão Ambiental que orienta o controle de aspectos e impactos ambientais, a prevenção da poluição e o uso responsável de recursos naturais nas frentes de serviço, pátio e oficina.",
+    "destaques": [
+      "Controle ambiental na manutenção, lubrificação e abastecimento com caminhões comboio em campo",
+      "Destinação correta de resíduos, óleos e efluentes com foco na prevenção da poluição",
+      "Conformidade legal ambiental e uso consciente de insumos em todas as operações"
+    ],
+    "ordem": 3
+  }
+]

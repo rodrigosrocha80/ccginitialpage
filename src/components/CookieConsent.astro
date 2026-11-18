@@ -1,0 +1,102 @@
+---
+interface Props {
+  ga4Id?: string;
+  clarityId?: string;
+}
+
+const { ga4Id = '', clarityId = '' } = Astro.props;
+---
+
+<aside
+  id="ccg-cookie-banner"
+  hidden
+  role="dialog"
+  aria-label="Preferências de privacidade e cookies"
+  data-ga4={ga4Id}
+  data-clarity={clarityId}
+  style="font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;"
+  class="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-3xl rounded-2xl border border-border-subtle bg-white p-5 shadow-2xl sm:left-6 sm:right-auto"
+>
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="space-y-1 text-sm text-ink-secondary">
+      <p class="font-bold text-ink-primary">Privacidade e Cookies (LGPD)</p>
+      <p>
+        Utilizamos cookies essenciais para o funcionamento do site e, mediante seu consentimento,
+        métricas de desempenho e navegação. Consulte nossa{' '}
+        <a href="/privacidade" class="font-semibold text-ccg-green-800 underline">
+          Política de Privacidade
+        </a>
+        .
+      </p>
+    </div>
+    <div class="flex shrink-0 flex-wrap gap-2">
+      <button
+        id="ccg-cookie-essential"
+        type="button"
+        class="min-h-[44px] cursor-pointer rounded-lg border border-border-subtle px-4 py-2 text-sm font-semibold text-ink-primary hover:bg-surface-muted"
+      >
+        Apenas essenciais
+      </button>
+      <button
+        id="ccg-cookie-accept"
+        type="button"
+        class="min-h-[44px] cursor-pointer rounded-lg bg-ccg-green-800 px-4 py-2 text-sm font-bold text-white hover:bg-ccg-green-900"
+      >
+        Aceitar cookies
+      </button>
+    </div>
+  </div>
+</aside>
+
+<script>
+  const KEY = 'ccg_lgpd_consent_v1';
+  const banner = document.getElementById('ccg-cookie-banner');
+  const btnEssential = document.getElementById('ccg-cookie-essential');
+  const btnAccept = document.getElementById('ccg-cookie-accept');
+
+  function loadAnalytics() {
+    if (!banner) return;
+    const w = window as unknown as { __ccgAnalyticsLoaded?: boolean };
+    if (w.__ccgAnalyticsLoaded) return;
+    w.__ccgAnalyticsLoaded = true;
+
+    const ga4Id = banner.dataset.ga4;
+    const clarityId = banner.dataset.clarity;
+    if (ga4Id) {
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(ga4Id)}`;
+      document.head.appendChild(s);
+      const inline = document.createElement('script');
+      inline.textContent = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4Id}',{anonymize_ip:true});`;
+      document.head.appendChild(inline);
+    }
+    if (clarityId) {
+      const c = document.createElement('script');
+      c.textContent = `(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","${clarityId}");`;
+      document.head.appendChild(c);
+    }
+  }
+
+  if (banner) {
+    const saved = window.localStorage.getItem(KEY);
+    if (saved === 'accepted') {
+      loadAnalytics();
+    } else if (saved !== 'essential') {
+      banner.hidden = false;
+    }
+
+    btnEssential?.addEventListener('click', () => {
+      window.localStorage.setItem(KEY, 'essential');
+      banner.hidden = true;
+    });
+    btnAccept?.addEventListener('click', () => {
+      window.localStorage.setItem(KEY, 'accepted');
+      loadAnalytics();
+      banner.hidden = true;
+    });
+    window.addEventListener('ccg:open-cookie-consent', () => {
+      banner.hidden = false;
+    });
+  }
+</script>

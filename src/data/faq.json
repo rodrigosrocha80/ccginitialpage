@@ -1,0 +1,38 @@
+[
+  {
+    "id": "prazo-orcamento",
+    "pergunta": "Em quanto tempo recebo o orçamento de locação ou terraplenagem?",
+    "resposta": "Respondemos às solicitações de orçamento em até 24 horas úteis após o recebimento dos dados básicos da demanda (equipamento ou escopo, local da obra e previsão de duração). Para demandas urgentes em canteiro, o atendimento direto pelo WhatsApp acelera a verificação imediata de disponibilidade no pátio de São Luís.",
+    "ordem": 1
+  },
+  {
+    "id": "idade-frota-manutencao",
+    "pergunta": "Como a CCG garante que a máquina não vai parar minha obra?",
+    "resposta": "A CCG realiza periodicamente manutenções preditiva, preventiva e corretiva em toda a frota, que conta com equipamentos com idade média inferior a 5 anos e disponibilidade operacional superior a 95% em contratos de alta exigência. Também operamos caminhões comboio para abastecimento e lubrificação diretamente em campo.",
+    "ordem": 2
+  },
+  {
+    "id": "regioes-atendidas",
+    "pergunta": "Vocês atendem apenas São Luís ou também outros municípios e estados?",
+    "resposta": "Nossa sede operacional fica em Pedrinhas, São Luís/MA (Av. Engenheiro Emiliano Macieira, nº 650), com logística própria por carreta prancha (até 45 t) e caminhão plataforma. Atendemos todo o Maranhão e já executamos contratos e locações no Pará, Rio Grande do Norte, Amapá, Ceará e Minas Gerais.",
+    "ordem": 3
+  },
+  {
+    "id": "locacao-ou-execucao",
+    "pergunta": "Posso contratar apenas a locação dos equipamentos ou também a execução da obra?",
+    "resposta": "Atuamos nos dois formatos: locação de máquinas pesadas e caminhões (com ou sem operador, conforme a característica do contrato) e execução completa de terraplenagem, drenagem, pavimentação e infraestrutura com assessoria de engenharia e mão de obra qualificada.",
+    "ordem": 4
+  },
+  {
+    "id": "seguranca-e-conformidade",
+    "pergunta": "A frota e as equipes atendem exigências de grandes indústrias e órgãos públicos?",
+    "resposta": "Sim. Seguimos uma Política de Gestão Integrada baseada em Qualidade, Segurança e Saúde no Trabalho, Meio Ambiente e Responsabilidade Social, atuando em contratos com Vale, Alumar, Petrobras, VLI, Governo do Maranhão e consórcios de grande porte.",
+    "ordem": 5
+  },
+  {
+    "id": "logistica-mobilizacao",
+    "pergunta": "A CCG cuida do transporte das máquinas até o canteiro de obras?",
+    "resposta": "Sim. Contamos com carreta prancha (2 eixos até 27 t e 3 eixos até 45 t) e caminhão plataforma (até 21 t) na própria frota, permitindo mobilização e desmobilização planejadas de acordo com o cronograma da sua obra.",
+    "ordem": 6
+  }
+]

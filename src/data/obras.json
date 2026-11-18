@@ -1,0 +1,205 @@
+[
+  {
+    "id": "alumar-lagoas-babilonia",
+    "titulo": "Lagoas Babilônia — Obra Ambiental e Drenagem",
+    "cliente": "Alumar",
+    "local": "São Luís",
+    "estado": "MA",
+    "setor": "Industrial e Ambiental",
+    "imagem": "hero/hero-lagoa-drenagem.jpg",
+    "contexto": "Projeto de elevado rigor ambiental envolvendo drenagem de duas lagoas, canal em gabião, aplicação de biomanta, supressão vegetal e o primeiro resgate de ictiofauna da história da Alumar.",
+    "resultados": [
+      "Média de 45 equipamentos operando com disponibilidade > 95%",
+      "100% da frota mobilizada com idade inferior a 5 anos",
+      "Cerca de 130 profissionais mobilizados e entrega antecipada ao prazo"
+    ],
+    "destaque": true,
+    "ordem": 1
+  },
+  {
+    "id": "alumar-capping-arb",
+    "titulo": "Capping dos ARB 04, 05, 06 e 07",
+    "cliente": "Alumar",
+    "local": "São Luís",
+    "estado": "MA",
+    "setor": "Industrial e Ambiental",
+    "imagem": "hero/hero-obra-aerea.jpg",
+    "contexto": "Obras de fechamento (ARB 04/05 Fase 02 e ARB 06/07 Fase 01) com transporte, espalhamento, regularização, descidas d'água, pré-moldados e cobertura vegetal.",
+    "resultados": [
+      "Frota média de ~50 equipamentos (< 5 anos) com disponibilidade > 95%",
+      "Média de 100 colaboradores entre mão de obra direta e indireta",
+      "Conclusão antes do prazo contratual com economia de recursos ao cliente"
+    ],
+    "destaque": true,
+    "ordem": 2
+  },
+  {
+    "id": "cln-s11d-tfpm",
+    "titulo": "Projeto CLN 150 e CLN S11D (On Shore e TFPM)",
+    "cliente": "Vale S.A.",
+    "local": "São Luís (Terminal Ferroviário Ponta da Madeira)",
+    "estado": "MA",
+    "setor": "Mineração e Portuário",
+    "imagem": "obras/obra-s11d-tfpm.jpg",
+    "contexto": "Serviços de terraplenagem, acessos em bica corrida e pedra rachão, drenagens diversas, bota-fora controlado e movimentação com caminhão munck nas frentes On Shore e TFPM.",
+    "resultados": [
+      "22.902 horas-máquina no CLN 150 (On Shore) e 26.441 h no TFPM",
+      "39.487 horas-máquina executadas no CLN S11D",
+      "Operação contínua dentro de terminal ferroviário e portuário de alto fluxo"
+    ],
+    "destaque": true,
+    "ordem": 3
+  },
+  {
+    "id": "ferrovia-norte-sul-vli",
+    "titulo": "Ferrovia Norte-Sul — Lote 2 (KMs 45+200 a 69+439)",
+    "cliente": "VLI Logística",
+    "local": "Imperatriz",
+    "estado": "MA",
+    "setor": "Ferroviário",
+    "imagem": "obras/obra-vli-ferrovia.jpg",
+    "contexto": "Execução de serviços de infraestrutura das integridades ao longo de 24,2 km da Ferrovia Norte-Sul, incluindo terraplenagem e drenagens em concreto armado.",
+    "resultados": [
+      "170.678,75 m³ de escavação, carga e transporte de material 1ª cat.",
+      "20.853,47 m lineares de drenagens superficiais e 5.295,22 m³ de concreto",
+      "176.611 m³ de compactação (95%, 100% Proctor Normal e bota-fora)"
+    ],
+    "destaque": true,
+    "ordem": 4
+  },
+  {
+    "id": "travessia-baixada-anajatuba-sjb",
+    "titulo": "Travessia da Baixada (Trechos 1 e 2)",
+    "cliente": "Governo do Maranhão",
+    "local": "Anajatuba e São João Batista",
+    "estado": "MA",
+    "setor": "Rodoviário e Pontes",
+    "imagem": "hero/hero-ponte-escavadeira.jpg",
+    "contexto": "Melhoramento e pavimentação rodoviária estratégica na Baixada Maranhense ligando Anajatuba a São João Batista, incluindo drenagem extensa e execução de pontes.",
+    "resultados": [
+      "45 km de pavimentação asfáltica (15 km Trecho 1 + 30 km Trecho 2)",
+      "74.102,26 m³ de escavação e 107.069,41 m³ de base e sub-base",
+      "10.114 m de drenagem + 1 ponte de trilho (12 m) e 1 ponte mista (40 m)"
+    ],
+    "destaque": true,
+    "ordem": 5
+  },
+  {
+    "id": "areia-branca-snef",
+    "titulo": "Parque Fotovoltaico Planta Solar Floresta",
+    "cliente": "SNEF / Energ Power",
+    "local": "Areia Branca",
+    "estado": "RN",
+    "setor": "Energia Solar",
+    "imagem": "obras/obra-snef-rn.jpg",
+    "contexto": "Infraestrutura civil completa, terraplenagem e implantação de 9 km de acessos em laterita para usina solar fotovoltaica no Rio Grande do Norte.",
+    "resultados": [
+      "2.131.817,22 m² de desmatamento e limpeza",
+      "143.262 m³ carregados em basculantes + 77.257 m³ de escavação e transporte",
+      "16.309 m³ de base e sub-base + 9 km de acessos internos"
+    ],
+    "destaque": false,
+    "ordem": 6
+  },
+  {
+    "id": "oiapoque-voltalia",
+    "titulo": "Complexo Fotovoltaico do Oiapoque",
+    "cliente": "Voltalia",
+    "local": "Oiapoque",
+    "estado": "AP",
+    "setor": "Energia Solar",
+    "imagem": "obras/obra-voltalia-ap.jpg",
+    "contexto": "Obras civis diversas para implantação de parque fotovoltaico, abrangendo terraplenagem, drenagem, hidrossemeadura, colchão Reno e cercamento perimetral.",
+    "resultados": [
+      "76.762,97 m² de limpeza e 5.786,60 m³ de escavação de 1ª categoria",
+      "769,72 m de canaleta DN 400 mm e 300 m³ de colchão Reno",
+      "1.430 m lineares de vedação em tela galvanizada com mourões de concreto"
+    ],
+    "destaque": false,
+    "ordem": 7
+  },
+  {
+    "id": "transposicao-sao-francisco",
+    "titulo": "Transposição do Rio São Francisco",
+    "cliente": "Serveng Engenharia",
+    "local": "Brejo Santo",
+    "estado": "CE",
+    "setor": "Infraestrutura Hídrica",
+    "imagem": "obras/obra-transposicao-ce.jpg",
+    "contexto": "Locação de equipamentos pesados e apoio operacional de terraplenagem em frente de serviço da transposição no Ceará.",
+    "resultados": [
+      "199.947 m³ de escavação, carga, transporte e descarga (DMT 1 km)",
+      "9.130 m³ adicionais de escavação e carga",
+      "111.482 m³×km em momento extraordinário de transporte"
+    ],
+    "destaque": false,
+    "ordem": 8
+  },
+  {
+    "id": "refinaria-bacabeira",
+    "titulo": "Refinaria Premium — Terraplenagem",
+    "cliente": "Consórcio Siemens / MARZA",
+    "local": "Bacabeira",
+    "estado": "MA",
+    "setor": "Industrial / Óleo & Gás",
+    "imagem": "obras/obra-refinaria-bacabeira.jpg",
+    "contexto": "Contrato de prestação de serviços de terraplenagem pesada para implantação industrial no município de Bacabeira.",
+    "resultados": [
+      "Movimentação pesada de terra com frota dedicada e controle de campo",
+      "Obra finalizada dentro dos padrões de segurança industrial"
+    ],
+    "destaque": false,
+    "ordem": 9
+  },
+  {
+    "id": "cedral-praia-pericaua",
+    "titulo": "Infraestrutura e Pavimentação Praia de Pericaua",
+    "cliente": "Governo do Maranhão",
+    "local": "Cedral",
+    "estado": "MA",
+    "setor": "Rodoviário",
+    "imagem": "obras/obra-cedral.jpg",
+    "contexto": "Obra de pavimentação asfáltica e macrodrenagem no litoral norte maranhense.",
+    "resultados": [
+      "6,30 km de pavimentação asfáltica e 12.600 m de drenagem",
+      "22.080 m³ de escavação e 17.664 m³ de compactação",
+      "15.148,80 m³ de base e sub-base executados"
+    ],
+    "destaque": false,
+    "ordem": 10
+  },
+  {
+    "id": "barreirinhas-sectur",
+    "titulo": "Acesso ao Povoado de Cardosa (22–23 km)",
+    "cliente": "SECTUR — Governo do Maranhão",
+    "local": "Barreirinhas",
+    "estado": "MA",
+    "setor": "Rodoviário",
+    "imagem": "obras/obra-barreirinhas.jpg",
+    "contexto": "Melhoramento da estrada vicinal de acesso ao Povoado de Cardosa nos Lençóis Maranhenses.",
+    "resultados": [
+      "161.000 m² de desmatamento, limpeza e regularização de subleito",
+      "23 km de revestimento primário em laterita equivalente",
+      "31.395 m³ de escavação e bueiros BDTC diâmetro 1.000 mm"
+    ],
+    "destaque": false,
+    "ordem": 11
+  },
+  {
+    "id": "ambev-brasil-ao-cubo",
+    "titulo": "Terraplenagem e Pavimentação — Fábrica Equatorial",
+    "cliente": "Ambev / Brasil ao Cubo",
+    "local": "São Luís",
+    "estado": "MA",
+    "setor": "Industrial",
+    "imagem": "obras/obra-ambev.jpg",
+    "contexto": "Preparação de terreno, drenagem de valas e base pavimentada na área interna industrial da Cervejaria Ambev.",
+    "resultados": [
+      "9.463,83 m³ de escavação, carga e transporte de 1ª categoria",
+      "3.788,12 m³ de aterro compactado e 1.920 m³ de base estabilizada",
+      "2.161,04 m³ de escavação de cavas e valas para drenagem"
+    ],
+    "destaque": false,
+    "ordem": 12
+  }
+]

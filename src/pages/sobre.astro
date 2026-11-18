@@ -1,0 +1,116 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { SITE } from '@/lib/site';
+
+import sedeCcg from '@/assets/brand/sede-ccg.jpg';
+import obraSede from '@/assets/obras/obra-sede-ccg.jpg';
+---
+
+<BaseLayout
+  title="A CCG — História, Missão, Visão e Valores | CCG Locações"
+  description="Conheça a trajetória da CCG Construções e Terraplenagem LTDA desde 2003 em São Luís/MA, nossa estrutura, frota de máquinas pesadas e atuação nacional."
+>
+  <PageHero
+    eyebrow="Institucional • Desde 2003"
+    title="Mais de duas décadas construindo confiança na engenharia e locação"
+    description="Sediada em São Luís/MA, a CCG une frota própria moderna, equipe qualificada e compromisso rigoroso com prazos, segurança e satisfação do cliente."
+    breadcrumbs={[{ label: 'A CCG' }]}
+  />
+
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+      <div class="space-y-4 text-base leading-relaxed text-ink-secondary lg:col-span-7">
+        <h2 class="font-display text-3xl font-extrabold text-ink-primary">Nossa História</h2>
+        <p>
+          Fundada em <strong>2003</strong> na cidade de São Luís/MA por César Roberto, a{' '}
+          <strong>CCG Construções e Terraplenagem LTDA</strong> consolidou seu alicerce no mercado
+          maranhense com uma filosofia clara: confiabilidade, compromisso e parceria de longo prazo.
+        </p>
+        <p>
+          Ao longo dessa trajetória, participamos de projetos estruturantes como a expansão da
+          Alumar (Consórcio de Alumínio do Maranhão), a construção da UTE Itaqui, os projetos CLN
+          S11D On Shore e TFPM da Vale, a Ferrovia Norte-Sul com a VLI Logística em Imperatriz e
+          grandes frentes rodoviárias e de energia renovável.
+        </p>
+        <p>
+          Hoje, a CCG atua em todo o território nacional, com presença consolidada no{' '}
+          <strong>Maranhão, Pará, Rio Grande do Norte, Amapá, Ceará e Minas Gerais</strong>,
+          entregando locação de equipamentos pesados (mais de 200 máquinas na unidade de locação
+          dentro de uma frota corporativa superior a 600 ativos) e serviços completos de engenharia,
+          terraplenagem, pavimentação e infraestrutura.
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1">
+        <div class="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs">
+          <Image
+            src={obraSede}
+            alt="Estrutura e sede da CCG Construções e Terraplenagem em São Luís - MA"
+            widths={[480, 760]}
+            class="aspect-[16/10] w-full object-cover"
+          />
+          <p class="px-4 py-2.5 text-xs font-medium text-ink-muted">
+            Sede operacional em Pedrinhas, São Luís/MA — 2.629,30 m² de área construída.
+          </p>
+        </div>
+        <div class="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs">
+          <Image
+            src={sedeCcg}
+            alt="Fachada da sede CCG Construções em São Luís"
+            widths={[480, 760]}
+            class="aspect-[16/10] w-full object-cover"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Missão, Visão e Valores -->
+  <section class="border-y border-border-subtle bg-white py-14">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        <article class="rounded-2xl border border-border-subtle bg-surface-canvas p-6">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">Propósito</p>
+          <h2 class="mt-2 font-display text-2xl font-extrabold text-ink-primary">Missão</h2>
+          <p class="mt-3 text-sm leading-relaxed text-ink-secondary">
+            Fornecer soluções de engenharia e locação de equipamentos que superem as expectativas do
+            mercado, priorizando a segurança, o meio ambiente, a qualidade e a responsabilidade
+            social.
+          </p>
+        </article>
+
+        <article class="rounded-2xl border border-border-subtle bg-surface-canvas p-6">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">Direcionamento</p>
+          <h2 class="mt-2 font-display text-2xl font-extrabold text-ink-primary">Visão</h2>
+          <p class="mt-3 text-sm leading-relaxed text-ink-secondary">
+            Ser referência no Norte e Nordeste em locação de equipamentos e prestação de serviços de
+            engenharia, visando sempre excelência no atendimento ao cliente.
+          </p>
+        </article>
+
+        <article class="rounded-2xl border border-border-subtle bg-surface-canvas p-6">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">Princípios</p>
+          <h2 class="mt-2 font-display text-2xl font-extrabold text-ink-primary">Valores</h2>
+          <ul class="mt-3 space-y-2 text-sm text-ink-secondary">
+            <li>&bull; Compromisso com a vida e respeito ao ser humano</li>
+            <li>&bull; Respeito ao meio ambiente</li>
+            <li>&bull; Agilidade e controle nos serviços prestados</li>
+            <li>&bull; Integridade, garantia de qualidade e responsabilidade</li>
+          </ul>
+        </article>
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {SITE.metrics.map((m) => (
+          <div class="rounded-2xl bg-ccg-forest p-5 text-white">
+            <p class="font-display text-3xl font-extrabold text-ccg-yellow-400">{m.value}</p>
+            <p class="mt-1 text-sm font-bold">{m.label}</p>
+            <p class="mt-1 text-xs text-emerald-100/80">{m.detail}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

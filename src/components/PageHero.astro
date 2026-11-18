@@ -1,0 +1,45 @@
+---
+interface Props {
+  eyebrow: string;
+  title: string;
+  description: string;
+  breadcrumbs?: { label: string; href?: string }[];
+}
+
+const { eyebrow, title, description, breadcrumbs = [] } = Astro.props;
+---
+
+<section class="relative overflow-hidden bg-ccg-forest bg-grid-industrial py-14 text-white sm:py-20">
+  <div
+    aria-hidden="true"
+    class="pointer-events-none absolute -right-24 -top-24 h-80 w-80 rounded-full bg-ccg-green-600/20 blur-3xl"
+  ></div>
+  <div class="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    {breadcrumbs.length > 0 && (
+      <nav aria-label="Trilha de navegação" class="mb-5 flex flex-wrap items-center gap-2 text-xs text-emerald-100/75">
+        <a href="/" class="hover:text-ccg-yellow-400 hover:underline">Início</a>
+        {breadcrumbs.map((b) => (
+          <>
+            <span aria-hidden="true">/</span>
+            {b.href ? (
+              <a href={b.href} class="hover:text-ccg-yellow-400 hover:underline">{b.label}</a>
+            ) : (
+              <span class="font-semibold text-ccg-yellow-400">{b.label}</span>
+            )}
+          </>
+        ))}
+      </nav>
+    )}
+
+    <p class="inline-flex items-center gap-2 rounded-full border border-ccg-yellow-400/30 bg-ccg-yellow-400/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-ccg-yellow-400">
+      {eyebrow}
+    </p>
+    <h1 class="mt-4 max-w-3xl font-display text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+      {title}
+    </h1>
+    <p class="mt-4 max-w-2xl text-base leading-relaxed text-emerald-100/85 sm:text-lg">
+      {description}
+    </p>
+    <slot />
+  </div>
+</section>

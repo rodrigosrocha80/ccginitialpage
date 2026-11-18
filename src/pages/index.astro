@@ -1,0 +1,627 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import { EquipamentosCatalogo } from '@/components/EquipamentosCatalogo';
+import { FaqAccordion } from '@/components/FaqAccordion';
+import { OrcamentoForm } from '@/components/OrcamentoForm';
+import CertificadoSeal from '@/components/CertificadoSeal.astro';
+import MotionReveal from '@/components/MotionReveal.astro';
+import { loadEquipamentosView } from '@/lib/equipamentosView';
+import { getAssetImage } from '@/lib/images';
+import { SITE, buildWhatsAppUrl } from '@/lib/site';
+
+import heroObra from '@/assets/hero/hero-obra-aerea.jpg';
+import equipeCampo from '@/assets/hero/equipe-campo.jpg';
+import frotaPatio from '@/assets/hero/frota-patio.jpg';
+
+const equipamentos = await loadEquipamentosView({ compact: true });
+const servicos = (await getCollection('servicos')).sort((a, b) => a.data.ordem - b.data.ordem);
+const obras = (await getCollection('obras')).sort((a, b) => a.data.ordem - b.data.ordem);
+const featuredObras = obras.filter((o) => o.data.destaque);
+const faqItems = (await getCollection('faq'))
+  .sort((a, b) => a.data.ordem - b.data.ordem)
+  .map((f) => f.data);
+const depoimentos = (await getCollection('depoimentos')).sort((a, b) => a.data.ordem - b.data.ordem);
+const clientes = (await getCollection('clientes'))
+  .sort((a, b) => a.data.ordem - b.data.ordem)
+  .filter((c) => c.data.destaque);
+const certificados = (await getCollection('certificados')).sort(
+  (a, b) => a.data.ordem - b.data.ordem
+);
+
+const processSteps = [
+  {
+    step: '01',
+    title: 'Levantamento da demanda',
+    desc: 'Informe os equipamentos, frentes de serviço, município da obra e previsão de contrato pelo formulário ou WhatsApp.',
+  },
+  {
+    step: '02',
+    title: 'Proposta em até 24h úteis',
+    desc: 'Nossa equipe técnica dimensiona a frota ideal e retorna com condições comerciais claras e prazo de entrega.',
+  },
+  {
+    step: '03',
+    title: 'Mobilização com frota própria',
+    desc: 'Transporte dedicado em carreta prancha (até 45 t) e caminhão plataforma, com checklist SGI de segurança.',
+  },
+  {
+    step: '04',
+    title: 'Suporte contínuo em campo',
+    desc: 'Manutenções preditiva, preventiva e corretiva periódicas e apoio de caminhão comboio para manter > 95% de disponibilidade.',
+  },
+];
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+---
+
+<BaseLayout
+  title="CCG Locações e Terraplenagem | Máquinas Pesadas e Linha Amarela em São Luís/MA"
+  description="Locação de máquinas pesadas, linha amarela, caminhões e execução de terraplenagem e pavimentação no Maranhão e em todo o Brasil. Frota com idade < 5 anos e disponibilidade > 95%. Orçamento em 24h."
+>
+  <!-- 1. HERO -->
+  <section class="relative overflow-hidden bg-ccg-forest bg-grid-industrial text-white">
+    <div
+      aria-hidden="true"
+      class="pointer-events-none absolute -left-32 top-0 h-96 w-96 rounded-full bg-ccg-green-700/25 blur-3xl"
+    ></div>
+
+    <div class="relative mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-12 lg:gap-12 lg:px-8 lg:py-20">
+      <div class="lg:col-span-6">
+        <p class="inline-flex items-center gap-2 rounded-full border border-ccg-yellow-400/35 bg-ccg-yellow-400/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-ccg-yellow-400">
+          São Luís / Maranhão &bull; Desde 2003
+        </p>
+
+        <h1 class="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+          Frota pesada pronta para sua obra no Maranhão
+        </h1>
+
+        <p class="mt-5 max-w-xl text-base leading-relaxed text-emerald-100/90 sm:text-lg">
+          Locação de linha amarela, caminhões e execução de terraplenagem com idade média inferior a
+          <strong class="text-white">5 anos</strong>, manutenção preventiva em campo e disponibilidade
+          comprovada acima de <strong class="text-white">95%</strong>.
+        </p>
+
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <a
+            href="#orcamento"
+            class="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl bg-ccg-yellow-400 px-6 py-3 text-base font-extrabold text-ink-primary shadow-lg transition-transform hover:-translate-y-0.5 hover:bg-ccg-yellow-500"
+          >
+            Solicitar Orçamento em 24h
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+          <a
+            href="#frota"
+            class="inline-flex min-h-[50px] items-center justify-center rounded-xl border border-white/25 bg-white/5 px-6 py-3 text-base font-bold text-white transition-colors hover:bg-white/15"
+          >
+            Explorar Frota Disponível
+          </a>
+        </div>
+
+        <!-- Micro-prova rápida -->
+        <dl class="mt-10 grid grid-cols-3 gap-4 border-t border-white/15 pt-6">
+          <div>
+            <dt class="text-xs text-emerald-200/80">Frota do grupo</dt>
+            <dd class="font-display text-2xl font-extrabold text-ccg-yellow-400 sm:text-3xl">+600</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-emerald-200/80">Disponibilidade</dt>
+            <dd class="font-display text-2xl font-extrabold text-white sm:text-3xl">&gt; 95%</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-emerald-200/80">Unidade locação</dt>
+            <dd class="font-display text-2xl font-extrabold text-white sm:text-3xl">+200</dd>
+          </div>
+        </dl>
+      </div>
+
+      <div class="lg:col-span-6">
+        <div class="relative overflow-hidden rounded-2xl border border-white/15 bg-ccg-green-900 shadow-2xl">
+          <Image
+            src={heroObra}
+            alt="Operação aérea de terraplenagem e frota pesada da CCG Construções em campo"
+            width={720}
+            widths={[380, 560, 720]}
+            sizes="(max-width: 640px) 380px, (max-width: 1024px) 560px, 580px"
+            format="webp"
+            quality={55}
+            loading="eager"
+            fetchpriority="high"
+            class="aspect-[16/10] w-full object-cover"
+          />
+          <div class="border-t border-white/10 bg-ccg-forest/95 px-5 py-4 backdrop-blur-sm sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-xs font-bold uppercase tracking-wider text-ccg-yellow-400">
+                Atendimento B2B e Obras Públicas
+              </p>
+              <p class="text-sm font-medium text-emerald-50">
+                Construtoras, portos, ferrovias, energia, indústria e prefeituras
+              </p>
+            </div>
+            <a
+              href={buildWhatsAppUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="mt-3 inline-flex min-h-[40px] shrink-0 items-center rounded-lg bg-ccg-green-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-ccg-green-600 sm:mt-0"
+            >
+              WhatsApp: {SITE.whatsappPrimary.display}
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. FAIXA DE PROVA SOCIAL (CLIENTES + MÉTRICAS REAIS) -->
+  <section aria-label="Clientes e indicadores reais" class="border-b border-border-subtle bg-white py-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+          Empresas e órgãos que já confiaram suas obras à CCG
+        </p>
+        <a href="/clientes" class="text-xs font-bold text-ccg-green-800 hover:underline">
+          Ver todos os clientes e parceiros &rarr;
+        </a>
+      </div>
+
+      <div class="mt-5 grid grid-cols-2 items-center gap-4 sm:grid-cols-5 lg:grid-cols-10">
+        {clientes.map((c) => (
+          <div
+            class="flex h-16 items-center justify-center rounded-xl border border-border-subtle/70 bg-surface-canvas p-2.5"
+            title={c.data.nome}
+          >
+            <Image
+              src={getAssetImage(c.data.logo)}
+              alt={`Logo ${c.data.nome}`}
+              width={120}
+              height={56}
+              loading="lazy"
+              class="max-h-10 w-auto object-contain opacity-90 transition-opacity hover:opacity-100"
+            />
+          </div>
+        ))}
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {SITE.metrics.map((m) => (
+          <div class="rounded-2xl border border-border-subtle bg-surface-canvas p-5">
+            <p class="font-display text-3xl font-extrabold text-ccg-green-800">{m.value}</p>
+            <p class="mt-1 font-display text-sm font-bold text-ink-primary">{m.label}</p>
+            <p class="mt-1.5 text-xs leading-relaxed text-ink-secondary">{m.detail}</p>
+          </div>
+        ))}
+      </div>
+
+      <!-- Destaque de Certificações SGI -->
+      <div class="mt-8 rounded-2xl border border-ccg-green-800/15 bg-ccg-green-50 p-5 sm:p-6">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+              Sistema de Gestão Integrada Certificado
+            </p>
+            <h2 class="mt-1 font-display text-lg font-extrabold text-ink-primary sm:text-xl">
+              Conformidade auditada para grandes contratos e obras públicas
+            </h2>
+          </div>
+          <a
+            href="/politica-integrada#certificados"
+            class="inline-flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-xl bg-ccg-green-800 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-ccg-green-900 sm:text-sm"
+          >
+            Ver certificados e Política SGI
+            <span aria-hidden="true">&rarr;</span>
+          </a>
+        </div>
+
+        <div class="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+          {certificados.map((cert) => (
+            <a
+              href={`/politica-integrada#certificado-${cert.data.id}`}
+              class="group flex items-center gap-3.5 rounded-xl border border-border-subtle bg-white p-4 transition-all hover:border-ccg-green-700 hover:shadow-xs"
+            >
+              <CertificadoSeal id={cert.data.id} variant="light" size="sm" />
+              <div class="min-w-0">
+                <p class="font-display text-base font-extrabold text-ink-primary group-hover:text-ccg-green-800">
+                  {cert.data.sigla}
+                </p>
+                <p class="truncate text-xs font-medium text-ink-secondary">
+                  {cert.data.norma}
+                </p>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. CATÁLOGO INTERATIVO DA FROTA -->
+  <section id="frota" class="py-16 sm:py-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="max-w-3xl">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+          Portfólio de Equipamentos
+        </p>
+        <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+          Linha amarela, caminhões e apoio operacional para cada etapa da obra
+        </h2>
+        <p class="mt-3 text-base leading-relaxed text-ink-secondary">
+          Filtre por categoria ou pesquise por capacidade técnica. Todos os equipamentos passam por
+          inspeção periódica preditiva, preventiva e corretiva antes da mobilização.
+        </p>
+      </div>
+
+      <div class="mt-8">
+        <EquipamentosCatalogo client:visible items={equipamentos} mode="home" />
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. SERVIÇOS E SOLUÇÕES -->
+  <section id="servicos" class="border-y border-border-subtle bg-white py-16 sm:py-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div class="max-w-2xl">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Soluções Integradas
+          </p>
+          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+            Da locação de máquina avulsa à execução completa da infraestrutura
+          </h2>
+        </div>
+        <a
+          href="#orcamento"
+          class="inline-flex min-h-[44px] shrink-0 items-center rounded-xl border border-ccg-green-800 px-5 py-2.5 text-sm font-bold text-ccg-green-900 hover:bg-ccg-green-50"
+        >
+          Dimensionar minha demanda &rarr;
+        </a>
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
+        {servicos.map((s, idx) => (
+          <MotionReveal delay={idx * 0.05}>
+            <article class="flex h-full flex-col rounded-2xl border border-border-subtle bg-surface-canvas p-6 sm:p-8">
+              <div class="flex items-center justify-between gap-3">
+                <span class="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-ccg-green-800 text-ccg-yellow-400">
+                  {s.data.icone === 'excavator' && (
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 17h12l2-5h3M5 17a2 2 0 1 0 4 0m4 0a2 2 0 1 0 4 0M7 12V7h5l3 5" />
+                    </svg>
+                  )}
+                  {s.data.icone === 'terrain' && (
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="m3 19 6-9 4 5 3-4 5 8H3Z" />
+                    </svg>
+                  )}
+                  {s.data.icone === 'road' && (
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M6 3 3 21M18 3l3 18M12 6v3m0 4v3m0 4v1" />
+                    </svg>
+                  )}
+                  {s.data.icone === 'truck' && (
+                    <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" />
+                      <circle cx="7" cy="18" r="2" />
+                      <circle cx="17.5" cy="18" r="2" />
+                    </svg>
+                  )}
+                </span>
+                <span class="text-xs font-bold uppercase tracking-wider text-ink-muted">
+                  Solução 0{idx + 1}
+                </span>
+              </div>
+
+              <h3 class="mt-5 font-display text-2xl font-extrabold text-ink-primary">
+                {s.data.titulo}
+              </h3>
+              <p class="mt-2 text-sm font-bold text-ccg-green-800">{s.data.beneficio}</p>
+              <p class="mt-3 text-base leading-relaxed text-ink-secondary">{s.data.descricao}</p>
+
+              <ul class="mt-5 space-y-2 border-t border-border-subtle pt-4 text-sm text-ink-primary">
+                {s.data.entregas.map((e) => (
+                  <li class="flex items-start gap-2.5">
+                    <svg aria-hidden="true" class="mt-0.5 h-4 w-4 shrink-0 text-ccg-green-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    <span>{e}</span>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          </MotionReveal>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. DIFERENCIAIS + POLÍTICA SGI -->
+  <section class="bg-ccg-forest py-16 text-white sm:py-20">
+    <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-12 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+      <div class="space-y-6 lg:col-span-6">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-yellow-400">
+          Confiabilidade Operacional &amp; SGI
+        </p>
+        <h2 class="font-display text-3xl font-extrabold leading-tight sm:text-4xl">
+          Engenharia, manutenção em campo e gestão integrada para sua obra não parar
+        </h2>
+        <p class="text-base leading-relaxed text-emerald-100/85">
+          Criada em 2003 em São Luís/MA, a CCG Construções e Terraplenagem sustenta suas operações em
+          três pilares do Sistema de Gestão Integrada: <strong class="text-white">Qualidade</strong>,
+          <strong class="text-white">Segurança e Saúde no Trabalho</strong> e{' '}
+          <strong class="text-white">Meio Ambiente</strong>.
+        </p>
+
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div class="rounded-xl border border-white/15 bg-white/5 p-4">
+            <p class="font-display text-lg font-bold text-ccg-yellow-400">Manutenção 360°</p>
+            <p class="mt-1 text-sm text-emerald-100/85">
+              Rotinas periódicas preditiva, preventiva e corretiva, além de comboios para abastecimento
+              e lubrificação na frente de serviço.
+            </p>
+          </div>
+          <div class="rounded-xl border border-white/15 bg-white/5 p-4">
+            <p class="font-display text-lg font-bold text-ccg-yellow-400">Atuação Interestadual</p>
+            <p class="mt-1 text-sm text-emerald-100/85">
+              Presença consolidada em obras no Maranhão, Pará, Rio Grande do Norte, Amapá, Ceará e
+              Minas Gerais.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {certificados.map((cert) => (
+            <a
+              href={`/politica-integrada#certificado-${cert.data.id}`}
+              class="flex items-center gap-3 rounded-xl border border-ccg-yellow-400/25 bg-white/5 p-3.5 transition-colors hover:border-ccg-yellow-400/60 hover:bg-white/10"
+            >
+              <CertificadoSeal id={cert.data.id} variant="dark" size="sm" />
+              <div class="min-w-0">
+                <p class="font-display text-sm font-extrabold text-ccg-yellow-400">
+                  {cert.data.sigla}
+                </p>
+                <p class="truncate text-xs text-emerald-100/80">{cert.data.categoria}</p>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <div class="flex flex-wrap gap-3 pt-2">
+          <a
+            href="/sobre"
+            class="inline-flex min-h-[44px] items-center rounded-xl bg-ccg-yellow-400 px-5 py-2.5 text-sm font-extrabold text-ink-primary hover:bg-ccg-yellow-500"
+          >
+            Conhecer a história da CCG
+          </a>
+          <a
+            href="/politica-integrada#certificados"
+            class="inline-flex min-h-[44px] items-center rounded-xl border border-white/25 px-5 py-2.5 text-sm font-bold text-white hover:bg-white/10"
+          >
+            Ver certificados e Política SGI
+          </a>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:col-span-6">
+        <div class="overflow-hidden rounded-2xl border border-white/15">
+          <Image
+            src={equipeCampo}
+            alt="Equipe técnica e operacional da CCG Construções com EPIs em frente de obra"
+            width={640}
+            widths={[400, 640]}
+            sizes="(max-width: 1024px) 100vw, 25vw"
+            quality={80}
+            loading="lazy"
+            class="aspect-[4/3] h-full w-full object-cover"
+          />
+        </div>
+        <div class="overflow-hidden rounded-2xl border border-white/15">
+          <Image
+            src={frotaPatio}
+            alt="Frota de linha amarela e caminhões alinhados no pátio operacional da CCG"
+            width={640}
+            widths={[400, 640]}
+            sizes="(max-width: 1024px) 100vw, 25vw"
+            quality={80}
+            loading="lazy"
+            class="aspect-[4/3] h-full w-full object-cover"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. CASES E OBRAS REAIS -->
+  <section id="obras" class="py-16 sm:py-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div class="max-w-2xl">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Histórico Comprovado
+          </p>
+          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+            Obras entregues em portos, ferrovias, energia e infraestrutura
+          </h2>
+        </div>
+        <a
+          href="/obras"
+          class="inline-flex min-h-[44px] shrink-0 items-center rounded-xl bg-ccg-green-800 px-5 py-2.5 text-sm font-bold text-white hover:bg-ccg-green-900"
+        >
+          Ver todas as {obras.length} obras &rarr;
+        </a>
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {featuredObras.map((obra) => (
+          <article class="flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md">
+            <div class="relative aspect-[16/10] overflow-hidden bg-surface-muted">
+              <Image
+                src={getAssetImage(obra.data.imagem)}
+                alt={`${obra.data.titulo} — ${obra.data.local}/${obra.data.estado}`}
+                widths={[480, 760]}
+                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading="lazy"
+                class="h-full w-full object-cover"
+              />
+              <span class="absolute left-3 top-3 rounded-md bg-ccg-forest/90 px-2.5 py-1 text-xs font-bold text-ccg-yellow-400">
+                {obra.data.cliente} &bull; {obra.data.estado}
+              </span>
+            </div>
+
+            <div class="flex flex-1 flex-col p-6">
+              <p class="text-xs font-semibold uppercase tracking-wider text-ccg-green-800">
+                {obra.data.setor} &bull; {obra.data.local}
+              </p>
+              <h3 class="mt-1.5 font-display text-xl font-bold text-ink-primary">
+                {obra.data.titulo}
+              </h3>
+              <p class="mt-2 text-sm leading-relaxed text-ink-secondary">
+                {obra.data.contexto}
+              </p>
+
+              <ul class="mt-4 space-y-1.5 border-t border-border-subtle pt-4 text-xs font-medium text-ink-primary">
+                {obra.data.resultados.map((res) => (
+                  <li class="flex items-start gap-2">
+                    <span class="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-ccg-green-700" aria-hidden="true"></span>
+                    <span>{res}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. PROCESSO ("COMO TRABALHAMOS") -->
+  <section class="border-y border-border-subtle bg-white py-16 sm:py-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="max-w-2xl">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+          Fluxo de Contratação Ágil
+        </p>
+        <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+          Como trabalhamos do orçamento à operação em campo
+        </h2>
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {processSteps.map((item) => (
+          <div class="relative rounded-2xl border border-border-subtle bg-surface-canvas p-6">
+            <span class="font-display text-3xl font-extrabold text-ccg-green-800">
+              {item.step}
+            </span>
+            <h3 class="mt-3 font-display text-lg font-bold text-ink-primary">{item.title}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-ink-secondary">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. DEPOIMENTOS (PLACEHOLDERS MARCADOS SEM INVENÇÃO) -->
+  <section id="depoimentos" class="py-16 sm:py-20">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+        <div class="max-w-2xl">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Avaliação de Contratantes
+          </p>
+          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+            Espaço reservado para depoimentos reais de clientes
+          </h2>
+          <p class="mt-2 text-sm text-ink-secondary">
+            Conforme diretriz editorial de veracidade, nenhum depoimento é fabricado. Substitua os
+            blocos em <code class="rounded bg-surface-muted px-1.5 py-0.5 text-xs">src/data/depoimentos.json</code> pelos relatos autorizados.
+          </p>
+        </div>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 gap-6 md:grid-cols-3">
+        {depoimentos.map((dep) => (
+          <blockquote class="flex flex-col justify-between rounded-2xl border border-dashed border-ccg-green-800/35 bg-white p-6">
+            <div>
+              {dep.data.status === 'placeholder' && (
+                <span class="inline-block rounded-md bg-amber-100 px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-900">
+                  Placeholder — Aguardando aprovação
+                </span>
+              )}
+              <p class="mt-3 text-sm leading-relaxed text-ink-secondary">
+                &ldquo;{dep.data.texto}&rdquo;
+              </p>
+            </div>
+            <footer class="mt-5 border-t border-border-subtle pt-4 text-xs">
+              <p class="font-bold text-ink-primary">{dep.data.nome}</p>
+              <p class="text-ink-secondary">
+                {dep.data.cargo} &bull; {dep.data.empresa}
+              </p>
+              <p class="mt-0.5 font-medium text-ccg-green-800">{dep.data.obraRelacionada}</p>
+            </footer>
+          </blockquote>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- 9. FAQ -->
+  <section id="faq" class="border-t border-border-subtle bg-white py-16 sm:py-20">
+    <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <div class="text-center">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+          Dúvidas Frequentes
+        </p>
+        <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+          Perguntas comuns antes de fechar a locação
+        </h2>
+      </div>
+
+      <div class="mt-10">
+        <FaqAccordion client:visible items={faqItems} />
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. CTA FINAL + FORMULÁRIO CURTO + WHATSAPP -->
+  <section id="orcamento" class="bg-ccg-green-50 py-16 sm:py-20">
+    <div class="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+      <div class="flex flex-col justify-center space-y-6 lg:col-span-5">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+          Orçamento Rápido
+        </p>
+        <h2 class="font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+          Pronto para mobilizar equipamentos confiáveis na sua obra?
+        </h2>
+        <p class="text-base leading-relaxed text-ink-secondary">
+          Envie sua solicitação em menos de 1 minuto ou fale diretamente com nossa central de
+          contratos em São Luís/MA.
+        </p>
+
+        <div class="space-y-3 rounded-2xl border border-border-subtle bg-white p-6">
+          <p class="text-xs font-bold uppercase tracking-wider text-ink-muted">
+            Atendimento Direto
+          </p>
+          <p class="text-sm text-ink-secondary">
+            <strong class="block text-base text-ink-primary">{SITE.phoneLandline}</strong>
+            Central fixa CCG
+          </p>
+          <p class="text-sm text-ink-secondary">
+            <strong class="block text-base text-ink-primary">
+              {SITE.whatsappPrimary.display} / {SITE.whatsappSecondary.display}
+            </strong>
+            WhatsApp e Contratos
+          </p>
+          <p class="text-sm text-ink-secondary">
+            <a href={`mailto:${SITE.emailContratos}`} class="font-semibold text-ccg-green-800 hover:underline">
+              {SITE.emailContratos}
+            </a>
+          </p>
+          <p class="text-xs text-ink-muted">{SITE.address.full}</p>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7">
+        <OrcamentoForm client:visible turnstileSiteKey={turnstileSiteKey} />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

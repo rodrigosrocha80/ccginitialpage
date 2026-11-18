@@ -1,0 +1,113 @@
+---
+import '@/styles/global.css';
+import { getImage } from 'astro:assets';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import WhatsAppFloat from '@/components/WhatsAppFloat.astro';
+import CookieConsent from '@/components/CookieConsent.astro';
+import { SITE } from '@/lib/site';
+import heroDefault from '@/assets/hero/hero-obra-aerea.jpg';
+import archivoLatinWoff2 from '@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url';
+import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  canonicalPath = Astro.url.pathname,
+  noindex = false,
+} = Astro.props;
+
+const canonicalUrl = new URL(canonicalPath, SITE.domain).toString();
+const ogImg = await getImage({ src: heroDefault, width: 1200, format: 'jpeg', quality: 80 });
+const ogImageUrl = new URL(ogImg.src, SITE.domain).toString();
+
+const ga4Id = import.meta.env.PUBLIC_GA4_ID || '';
+const clarityId = import.meta.env.PUBLIC_CLARITY_ID || '';
+
+const schemaOrg = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': `${SITE.domain}/#organization`,
+      name: SITE.legalName,
+      alternateName: SITE.brandShort,
+      url: SITE.domain,
+      email: SITE.emailContratos,
+      taxID: SITE.cnpj,
+      foundingDate: '2003',
+      sameAs: [SITE.social.instagram, SITE.social.facebook, SITE.social.youtube],
+    },
+    {
+      '@type': 'LocalBusiness',
+      '@id': `${SITE.domain}/#localbusiness`,
+      name: `${SITE.brandShort} — ${SITE.legalName}`,
+      url: SITE.domain,
+      image: ogImageUrl,
+      telephone: '+55-98-3313-9550',
+      email: SITE.emailContratos,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: SITE.address.street,
+        addressLocality: SITE.address.city,
+        addressRegion: SITE.address.state,
+        addressCountry: SITE.address.country,
+      },
+      areaServed: ['Maranhão', 'Pará', 'Rio Grande do Norte', 'Amapá', 'Ceará', 'Minas Gerais'],
+      parentOrganization: { '@id': `${SITE.domain}/#organization` },
+    },
+  ],
+};
+---
+
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" as="font" type="font/woff2" href={archivoLatinWoff2} crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href={interLatinWoff2} crossorigin />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    <meta property="og:locale" content="pt_BR" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:site_name" content={SITE.brandShort} />
+    <meta property="og:image" content={ogImageUrl} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <script type="application/ld+json" set:html={JSON.stringify(schemaOrg)} />
+  </head>
+  <body class="flex min-h-screen flex-col antialiased selection:bg-ccg-yellow-400 selection:text-ink-primary">
+    <a href="#conteudo-principal" class="sr-only sr-only-focusable">
+      Pular para o conteúdo principal
+    </a>
+
+    <Header currentPath={Astro.url.pathname} />
+
+    <main id="conteudo-principal" class="flex-1">
+      <slot />
+    </main>
+
+    <Footer />
+    <WhatsAppFloat />
+    <CookieConsent ga4Id={ga4Id} clarityId={clarityId} />
+  </body>
+</html>

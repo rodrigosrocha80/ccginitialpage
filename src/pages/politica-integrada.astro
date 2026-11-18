@@ -1,0 +1,244 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import CertificadoSeal from '@/components/CertificadoSeal.astro';
+import { SITE } from '@/lib/site';
+import sgiImg from '@/assets/brand/sgi-politica.jpg';
+
+const certificados = (await getCollection('certificados')).sort(
+  (a, b) => a.data.ordem - b.data.ordem
+);
+
+const compromissos = [
+  {
+    titulo: '1. Saúde Ocupacional',
+    texto:
+      'Disponibilizar recursos e ações para eliminação ou minimização dos riscos que possam afetar a integridade física e mental dos nossos colaboradores.',
+  },
+  {
+    titulo: '2. Segurança do Trabalho',
+    texto:
+      'Promover a divulgação e treinamento para conscientização com intuito de prevenir e eliminar riscos que mantenham a integridade física dos nossos colaboradores e partes interessadas.',
+  },
+  {
+    titulo: '3. Meio Ambiente',
+    texto:
+      'Desenvolver e manter ações benéficas para a preservação do meio ambiente, prevenção da poluição e uso consciente dos recursos naturais em comprometimento com nossos colaboradores e a sociedade.',
+  },
+  {
+    titulo: '4. Qualidade',
+    texto:
+      'Satisfazer nossos clientes através do atendimento dos requisitos contratuais e expectativas, promovendo melhoria contínua dos processos, serviços e da frota de forma sustentável e rentável.',
+  },
+  {
+    titulo: '5. Responsabilidade Social',
+    texto:
+      'Valorizar nossos colaboradores através do reconhecimento do seu desenvolvimento e capacitação, atendendo integralmente à legislação trabalhista pertinente ao nosso negócio.',
+  },
+];
+---
+
+<BaseLayout
+  title="Política SGI e Certificações PROCEM, ISO 9001 e ISO 14001 | CCG Locações"
+  description="Conheça a Política de Gestão Integrada (SGI) da CCG e nossas certificações PROCEM, ISO 9001 (Qualidade) e ISO 14001 (Meio Ambiente) para locação de máquinas e obras."
+>
+  <PageHero
+    eyebrow="Sistema de Gestão Integrada"
+    title="Política de Qualidade, Segurança, Meio Ambiente e Responsabilidade Social"
+    description="A CCG estabelece como premissa para todas as suas locações e obras o atendimento rigoroso aos requisitos da Gestão Integrada, respaldada pelas certificações PROCEM, ISO 9001 e ISO 14001."
+    breadcrumbs={[{ label: 'Política SGI e Certificações' }]}
+  >
+    <div class="mt-6 flex flex-wrap items-center gap-2.5">
+      {certificados.map((cert) => (
+        <a
+          href={`#certificado-${cert.data.id}`}
+          class="inline-flex min-h-[38px] items-center gap-2 rounded-xl border border-ccg-yellow-400/35 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-white transition-colors hover:border-ccg-yellow-400 hover:bg-ccg-yellow-400/15"
+        >
+          <span class="h-2 w-2 rounded-full bg-ccg-yellow-400" aria-hidden="true"></span>
+          <span>{cert.data.sigla}</span>
+          <span class="font-normal text-emerald-100/80">&bull; {cert.data.categoria}</span>
+        </a>
+      ))}
+    </div>
+  </PageHero>
+
+  <!-- Certificações SGI -->
+  <section id="certificados" class="border-b border-border-subtle bg-white py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <div class="max-w-3xl">
+          <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+            Certificações &amp; Qualificações Oficiais
+          </p>
+          <h2 class="mt-2 font-display text-3xl font-extrabold text-ink-primary sm:text-4xl">
+            Certificados PROCEM, ISO 9001 e ISO 14001
+          </h2>
+          <p class="mt-3 text-base leading-relaxed text-ink-secondary">
+            Nossas certificações validam a conformidade da CCG em qualidade, gestão ambiental e
+            qualificação de fornecedores para atuar em contratos industriais, portuários, ferroviários
+            e obras públicas de alta exigência.
+          </p>
+        </div>
+        <a
+          href={`mailto:${SITE.emailContratos}?subject=${encodeURIComponent('Solicitação de Certificados SGI (PROCEM / ISO 9001 / ISO 14001)')}`}
+          class="inline-flex min-h-[44px] shrink-0 items-center justify-center rounded-xl border border-ccg-green-800 px-5 py-2.5 text-sm font-bold text-ccg-green-900 transition-colors hover:bg-ccg-green-50"
+        >
+          Solicitar dossiê para homologação
+        </a>
+      </div>
+
+      <div class="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        {certificados.map((cert) => {
+          const c = cert.data;
+          const hasMeta = Boolean(c.registro || c.certificadora || c.validade);
+          return (
+            <article
+              id={`certificado-${c.id}`}
+              class="flex h-full flex-col rounded-2xl border border-border-subtle bg-surface-canvas p-6 shadow-xs transition-shadow hover:shadow-md sm:p-7"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <CertificadoSeal id={c.id} variant="light" size="md" />
+                <span class="inline-flex items-center rounded-full border border-ccg-green-800/20 bg-ccg-green-100 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ccg-green-900">
+                  {c.categoria}
+                </span>
+              </div>
+
+              <div class="mt-5">
+                <p class="text-xs font-bold uppercase tracking-wider text-ccg-green-800">
+                  {c.norma}
+                </p>
+                <h3 class="mt-1 font-display text-2xl font-extrabold text-ink-primary">
+                  {c.sigla}
+                </h3>
+                <p class="text-sm font-semibold text-ink-secondary">{c.nome}</p>
+              </div>
+
+              <p class="mt-3 text-sm leading-relaxed text-ink-secondary">{c.resumo}</p>
+
+              <ul class="mt-5 space-y-2 border-t border-border-subtle pt-4 text-sm text-ink-primary">
+                {c.destaques.map((item) => (
+                  <li class="flex items-start gap-2.5">
+                    <svg
+                      aria-hidden="true"
+                      class="mt-0.5 h-4 w-4 shrink-0 text-ccg-green-700"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="3"
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              {hasMeta && (
+                <dl class="mt-5 grid grid-cols-1 gap-2 rounded-xl border border-border-subtle bg-white p-3.5 text-xs">
+                  {c.certificadora && (
+                    <div class="flex justify-between gap-2">
+                      <dt class="font-medium text-ink-muted">Organismo</dt>
+                      <dd class="font-semibold text-ink-primary">{c.certificadora}</dd>
+                    </div>
+                  )}
+                  {c.registro && (
+                    <div class="flex justify-between gap-2">
+                      <dt class="font-medium text-ink-muted">Registro</dt>
+                      <dd class="font-semibold text-ink-primary">{c.registro}</dd>
+                    </div>
+                  )}
+                  {c.validade && (
+                    <div class="flex justify-between gap-2">
+                      <dt class="font-medium text-ink-muted">Validade</dt>
+                      <dd class="font-semibold text-ink-primary">{c.validade}</dd>
+                    </div>
+                  )}
+                </dl>
+              )}
+
+              <div class="mt-auto pt-5">
+                {c.arquivoPdf ? (
+                  <a
+                    href={c.arquivoPdf}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl bg-ccg-green-800 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-ccg-green-900"
+                  >
+                    Visualizar certificado (PDF)
+                    <span aria-hidden="true">&rarr;</span>
+                  </a>
+                ) : (
+                  <a
+                    href={`mailto:${SITE.emailContratos}?subject=${encodeURIComponent(`Solicitação de Certificado ${c.sigla} — Homologação`)}`}
+                    class="inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-ccg-green-800/25 bg-white px-4 py-2.5 text-sm font-bold text-ccg-green-900 transition-colors hover:border-ccg-green-800 hover:bg-ccg-green-50"
+                  >
+                    Solicitar cópia para homologação
+                    <span aria-hidden="true">&rarr;</span>
+                  </a>
+                )}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- Compromissos da Política Integrada -->
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div class="max-w-2xl">
+        <p class="text-xs font-bold uppercase tracking-widest text-ccg-green-800">
+          Diretrizes da Política SGI
+        </p>
+        <h2 class="mt-2 font-display text-2xl font-extrabold text-ink-primary sm:text-3xl">
+          Cinco compromissos em cada frente de obra e locação
+        </h2>
+      </div>
+
+      <div class="mt-8 grid grid-cols-1 items-start gap-10 lg:grid-cols-12">
+        <div class="space-y-4 lg:col-span-8">
+          {compromissos.map((c) => (
+            <article class="rounded-2xl border border-border-subtle bg-white p-6 shadow-xs">
+              <h3 class="font-display text-xl font-bold text-ccg-green-900">{c.titulo}</h3>
+              <p class="mt-2 text-base leading-relaxed text-ink-secondary">{c.texto}</p>
+            </article>
+          ))}
+        </div>
+
+        <aside class="space-y-5 rounded-2xl border border-border-subtle bg-white p-6 shadow-xs lg:col-span-4">
+          <Image
+            src={sgiImg}
+            alt="Diagrama dos quatro pilares da Política Integrada SGI da CCG: Qualidade, Saúde e Segurança do Trabalho, Meio Ambiente e Responsabilidade Social"
+            width={420}
+            height={420}
+            class="mx-auto w-full max-w-xs rounded-xl object-contain"
+          />
+          <p class="text-sm leading-relaxed text-ink-secondary">
+            Esses compromissos sustentam nossa cultura, missão e visão organizacional em cada frente
+            de obra e contrato de locação de equipamentos.
+          </p>
+
+          <div class="rounded-xl border border-ccg-green-800/15 bg-ccg-green-50 p-4">
+            <p class="text-xs font-bold uppercase tracking-wider text-ccg-green-900">
+              Padrão Auditado e Certificado
+            </p>
+            <p class="mt-1 text-xs leading-relaxed text-ink-secondary">
+              Práticas integradas às certificações <strong class="text-ink-primary">PROCEM</strong>,{' '}
+              <strong class="text-ink-primary">ISO 9001</strong> e{' '}
+              <strong class="text-ink-primary">ISO 14001</strong>.
+            </p>
+            <a
+              href="/#orcamento"
+              class="mt-3 inline-flex min-h-[40px] w-full items-center justify-center rounded-lg bg-ccg-green-800 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-ccg-green-900"
+            >
+              Solicitar Orçamento para Sua Obra
+            </a>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

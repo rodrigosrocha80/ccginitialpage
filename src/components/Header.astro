@@ -1,0 +1,181 @@
+---
+import { Image } from 'astro:assets';
+import logoCcg from '@/assets/brand/logo-ccg.png';
+import { SITE, buildWhatsAppUrl } from '@/lib/site';
+
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = '/' } = Astro.props;
+
+const navLinks = [
+  { href: '/equipamentos', label: 'Equipamentos' },
+  { href: '/#servicos', label: 'Serviços' },
+  { href: '/obras', label: 'Obras' },
+  { href: '/clientes', label: 'Clientes' },
+  { href: '/sobre', label: 'A CCG' },
+  { href: '/politica-integrada', label: 'Política SGI' },
+];
+---
+
+<!-- Barra utilitária superior -->
+<div class="hidden border-b border-ccg-green-900/30 bg-ccg-forest text-xs text-emerald-50/90 md:block">
+  <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
+    <p class="flex items-center gap-2">
+      <span class="inline-block h-2 w-2 rounded-full bg-ccg-yellow-400" aria-hidden="true"></span>
+      <span>São Luís/MA — Atendimento em todo o Maranhão e território nacional</span>
+    </p>
+    <div class="flex items-center gap-5">
+      <a
+        href={SITE.phoneLandlineHref}
+        class="inline-flex items-center gap-1.5 font-medium transition-colors hover:text-ccg-yellow-400"
+      >
+        <svg aria-hidden="true" class="h-3.5 w-3.5 text-ccg-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+        </svg>
+        {SITE.phoneLandline}
+      </a>
+      <a
+        href={buildWhatsAppUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font-medium transition-colors hover:text-ccg-yellow-400"
+      >
+        WhatsApp: {SITE.whatsappPrimary.display}
+      </a>
+      <a
+        href={`mailto:${SITE.emailContratos}`}
+        class="font-medium transition-colors hover:text-ccg-yellow-400"
+      >
+        {SITE.emailContratos}
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Header principal fixo -->
+<header class="sticky top-0 z-40 border-b border-border-subtle bg-white/95 backdrop-blur-md">
+  <div class="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-2.5 sm:px-6 lg:px-8">
+    <a href="/" class="flex min-h-[44px] items-center gap-3 rounded-lg pr-2">
+      <Image
+        src={logoCcg}
+        alt="CCG Construções e Locações"
+        width={116}
+        height={60}
+        loading="eager"
+        class="h-11 w-auto object-contain sm:h-12"
+      />
+      <span class="hidden border-l border-border-subtle pl-3 text-xs font-semibold uppercase tracking-wider text-ccg-green-900 xl:block">
+        Locações &amp;<br />Terraplenagem
+      </span>
+    </a>
+
+    <nav aria-label="Navegação principal" class="hidden items-center gap-1 lg:flex">
+      {navLinks.map((link) => {
+        const isActive = currentPath === link.href;
+        return (
+          <a
+            href={link.href}
+            aria-current={isActive ? 'page' : undefined}
+            class={`inline-flex min-h-[44px] items-center rounded-lg px-3.5 text-sm font-semibold transition-colors ${
+              isActive
+                ? 'bg-ccg-green-50 text-ccg-green-900'
+                : 'text-ink-secondary hover:bg-surface-muted hover:text-ccg-green-900'
+            }`}
+          >
+            {link.label}
+          </a>
+        );
+      })}
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a
+        href="/#orcamento"
+        class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-ccg-green-800 px-4 py-2 text-sm font-bold text-white shadow-xs transition-colors hover:bg-ccg-green-900 sm:px-5"
+      >
+        Solicitar Orçamento
+      </a>
+
+      <button
+        id="mobile-menu-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="mobile-nav-drawer"
+        aria-label="Abrir menu de navegação"
+        class="inline-flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-xl border border-border-subtle text-ink-primary hover:bg-surface-muted lg:hidden"
+      >
+        <svg aria-hidden="true" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Menu mobile -->
+  <div
+    id="mobile-nav-drawer"
+    hidden
+    class="border-t border-border-subtle bg-white px-4 pb-5 pt-3 shadow-lg lg:hidden"
+  >
+    <nav aria-label="Navegação mobile" class="flex flex-col gap-1">
+      {navLinks.map((link) => (
+        <a
+          href={link.href}
+          class="flex min-h-[44px] items-center rounded-lg px-3 text-base font-semibold text-ink-primary hover:bg-ccg-green-50 hover:text-ccg-green-900"
+        >
+          {link.label}
+        </a>
+      ))}
+      <a
+        href="/trabalhe-conosco"
+        class="flex min-h-[44px] items-center rounded-lg px-3 text-base font-semibold text-ink-primary hover:bg-ccg-green-50 hover:text-ccg-green-900"
+      >
+        Trabalhe Conosco
+      </a>
+      <a
+        href="/contato"
+        class="flex min-h-[44px] items-center rounded-lg px-3 text-base font-semibold text-ink-primary hover:bg-ccg-green-50 hover:text-ccg-green-900"
+      >
+        Contatos e Localização
+      </a>
+    </nav>
+    <div class="mt-4 flex flex-col gap-2 border-t border-border-subtle pt-4 text-sm">
+      <a
+        href={buildWhatsAppUrl()}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex min-h-[44px] items-center justify-center rounded-xl bg-ccg-green-800 px-4 py-2.5 font-bold text-white"
+      >
+        WhatsApp Comercial: {SITE.whatsappPrimary.display}
+      </a>
+      <a
+        href={SITE.phoneLandlineHref}
+        class="inline-flex min-h-[44px] items-center justify-center rounded-xl border border-border-subtle px-4 py-2.5 font-semibold text-ink-primary"
+      >
+        Ligar: {SITE.phoneLandline}
+      </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById('mobile-menu-toggle');
+  const drawer = document.getElementById('mobile-nav-drawer');
+  if (btn && drawer) {
+    const closeMenu = () => {
+      drawer.hidden = true;
+      btn.setAttribute('aria-expanded', 'false');
+    };
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      drawer.hidden = open;
+      btn.setAttribute('aria-expanded', String(!open));
+    });
+    drawer.querySelectorAll('a').forEach((a) => a.addEventListener('click', closeMenu));
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !drawer.hidden) closeMenu();
+    });
+  }
+</script>

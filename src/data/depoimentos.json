@@ -1,0 +1,32 @@
+[
+  {
+    "id": "depoimento-1",
+    "status": "placeholder",
+    "nome": "[PLACEHOLDER — Nome do Gestor de Obra]",
+    "cargo": "[Cargo / Função]",
+    "empresa": "[Construtora ou Indústria Cliente]",
+    "obraRelacionada": "Locação de Linha Amarela e Terraplenagem",
+    "texto": "[PLACEHOLDER: Inserir depoimento real aprovado pelo cliente sobre prazo de mobilização, disponibilidade da frota e suporte de manutenção em campo.]",
+    "ordem": 1
+  },
+  {
+    "id": "depoimento-2",
+    "status": "placeholder",
+    "nome": "[PLACEHOLDER — Nome do Engenheiro / Comprador]",
+    "cargo": "[Engenheiro Residente / Suprimentos]",
+    "empresa": "[Empresa Contratante]",
+    "obraRelacionada": "Contrato de Infraestrutura ou Pavimentação",
+    "texto": "[PLACEHOLDER: Inserir depoimento real aprovado pelo cliente destacando cumprimento de metas de SST, produtividade da equipe e entrega dentro do cronograma.]",
+    "ordem": 2
+  },
+  {
+    "id": "depoimento-3",
+    "status": "placeholder",
+    "nome": "[PLACEHOLDER — Nome do Gestor Público ou Privado]",
+    "cargo": "[Secretaria / Diretoria Técnica]",
+    "empresa": "[Órgão ou Empresa Parceira]",
+    "obraRelacionada": "Obra Rodoviária ou Drenagem",
+    "texto": "[PLACEHOLDER: Inserir depoimento real aprovado pelo cliente sobre atendimento comercial, clareza contratual e confiabilidade dos equipamentos.]",
+    "ordem": 3
+  }
+]

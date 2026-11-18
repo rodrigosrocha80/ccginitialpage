@@ -1,0 +1,54 @@
+[
+  {
+    "id": "locacao-linha-amarela",
+    "titulo": "Locação de Linha Amarela",
+    "beneficio": "Mantenha seu cronograma rodando sem imobilizar capital em frota própria",
+    "descricao": "Escavadeiras, pás carregadeiras, retroescavadeiras, motoniveladoras, tratores de esteira e rolos compactadores com idade inferior a 5 anos e plano preventivo contínuo.",
+    "entregas": [
+      "Disponibilidade superior a 95% comprovada em contratos industriais",
+      "Locação com ou sem operador qualificado e manutenção em campo",
+      "Atendimento ágil em São Luís, interior do Maranhão e outros estados"
+    ],
+    "icone": "excavator",
+    "ordem": 1
+  },
+  {
+    "id": "terraplenagem-infraestrutura",
+    "titulo": "Terraplenagem e Preparação de Terreno",
+    "beneficio": "Execute corte, aterro, compactação e drenagem com engenharia e segurança",
+    "descricao": "Execução completa de obras de terraplenagem, supressão vegetal, recuperação ambiental, regularização de subleito, controle tecnológico e bota-fora controlado.",
+    "entregas": [
+      "Assessoria técnica de engenharia e equipes multidisciplinares",
+      "Experiência em áreas industriais críticas (Alumar, Vale, Petrobras)",
+      "Rigidez no atendimento aos requisitos ambientais e de SST"
+    ],
+    "icone": "terrain",
+    "ordem": 2
+  },
+  {
+    "id": "pavimentacao-rodovias",
+    "titulo": "Pavimentação Asfáltica e Drenagem",
+    "beneficio": "Reduza perdas de mistura e acelere acessos viários com usina móvel",
+    "descricao": "Implantação de base, sub-base, imprimação com espargidor, aplicação de CBUQ com vibroacabadora de 450 t/h, fresagem e drenagem pluvial em concreto armado.",
+    "entregas": [
+      "Usina de Asfalto Móvel levada diretamente para a frente de obra",
+      "Conjunto completo de compactação (liso, chapa, pneus e pé de carneiro)",
+      "Mais de 50 km de pavimentação entregues em contratos rodoviários no MA"
+    ],
+    "icone": "road",
+    "ordem": 3
+  },
+  {
+    "id": "logistica-caminhoes",
+    "titulo": "Caminhões Pesados e Logística Integrada",
+    "beneficio": "Mobilize máquinas, insumos, água e combustível sem depender de terceiros",
+    "descricao": "Basculantes, pipas, comboios de abastecimento, muncks, plataformas, carretas prancha (até 45 t) e veículos de apoio para manter a obra autossuficiente.",
+    "entregas": [
+      "Caminhões comboio para abastecimento e lubrificação in loco",
+      "Carreta prancha e plataforma para mobilização e desmobilização ágil",
+      "Transporte de equipes com Hilux 4x4, vans e micro-ônibus"
+    ],
+    "icone": "truck",
+    "ordem": 4
+  }
+]

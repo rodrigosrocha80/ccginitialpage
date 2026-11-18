@@ -1,0 +1,86 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo";
+@import "@fontsource-variable/inter";
+
+@theme {
+  --font-display: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* Identidade oficial CCG Construções & Terraplenagem + Linha Amarela */
+  --color-ccg-forest: #0b2416;
+  --color-ccg-green-900: #0e4a24;
+  --color-ccg-green-800: #105e2d;
+  --color-ccg-green-700: #15773a;
+  --color-ccg-green-600: #19a74e;
+  --color-ccg-green-100: #e8f5ec;
+  --color-ccg-green-50: #f3faf5;
+
+  --color-ccg-yellow-400: #f5d000;
+  --color-ccg-yellow-500: #eab308;
+  --color-ccg-yellow-600: #b48400;
+
+  --color-surface-canvas: #f7f8f7;
+  --color-surface-card: #ffffff;
+  --color-surface-muted: #edf1ee;
+  --color-border-subtle: #dbe2dd;
+
+  --color-ink-primary: #111814;
+  --color-ink-secondary: #3f4b44;
+  --color-ink-muted: #5a675f;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: var(--font-sans);
+    font-size: 16px;
+    color: var(--color-ink-primary);
+    background-color: var(--color-surface-canvas);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  h1, h2, h3, h4, .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-ccg-yellow-500);
+    outline-offset: 2px;
+  }
+
+  /* Evitar que âncoras fiquem escondidas atrás do header sticky */
+  [id] {
+    scroll-margin-top: 5.5rem;
+  }
+}
+
+.bg-grid-industrial {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.sr-only-focusable:focus {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1.25rem;
+  clip: auto;
+  overflow: visible;
+  white-space: normal;
+  background: var(--color-ccg-yellow-400);
+  color: var(--color-ink-primary);
+  font-weight: 700;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}

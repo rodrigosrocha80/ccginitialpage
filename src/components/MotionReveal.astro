@@ -1,0 +1,30 @@
+---
+interface Props {
+  delay?: number;
+  className?: string;
+}
+
+const { delay = 0, className = '' } = Astro.props;
+---
+
+<div
+  data-reveal
+  style={`transition-delay: ${Math.round(delay * 1000)}ms`}
+  class={`ccg-reveal ${className}`}
+>
+  <slot />
+</div>
+
+<style>
+  .ccg-reveal {
+    opacity: 1;
+    transform: none;
+    transition: opacity 280ms cubic-bezier(0.22, 1, 0.36, 1), transform 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ccg-reveal {
+      transition: none !important;
+      transform: none !important;
+    }
+  }
+</style>

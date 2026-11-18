@@ -1,0 +1,59 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { EquipamentosCatalogo } from '@/components/EquipamentosCatalogo';
+import { loadEquipamentosView } from '@/lib/equipamentosView';
+import { buildWhatsAppUrl } from '@/lib/site';
+
+const equipamentos = await loadEquipamentosView();
+---
+
+<BaseLayout
+  title="Equipamentos e Frota Linha Amarela | CCG Locações"
+  description="Consulte o catálogo completo da frota CCG: escavadeiras hidráulicas, pás carregadeiras, retroescavadeiras, motoniveladoras, rolos compactadores, usina de asfalto móvel e caminhões."
+>
+  <PageHero
+    eyebrow="Catálogo Técnico da Frota"
+    title="Equipamentos de linha amarela, caminhões e veículos de apoio"
+    description="Frota moderna com idade média inferior a 5 anos e rotina periódica de manutenção preditiva, preventiva e corretiva. Solicite cotação direta por equipamento."
+    breadcrumbs={[{ label: 'Equipamentos' }]}
+  >
+    <div class="mt-6 flex flex-wrap gap-2 text-xs">
+      <a href="#escavadeiras" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Escavadeiras</a>
+      <a href="#carregadeiras" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Carregadeiras</a>
+      <a href="#retroescavadeiras" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Retroescavadeiras</a>
+      <a href="#tratores-e-nivelamento" class="rounded-lg border border-white/20 bg-white/10 px-3 py-1.5 font-semibold hover:bg-white/20">Motoniveladoras e Tratores</a>
+    </div>
+  </PageHero>
+
+  <!-- Âncoras para redirecionamentos 301 das subpáginas antigas -->
+  <div id="escavadeiras" class="sr-only">Seção de Escavadeiras</div>
+  <div id="carregadeiras" class="sr-only">Seção de Carregadeiras</div>
+  <div id="retroescavadeiras" class="sr-only">Seção de Retroescavadeiras</div>
+  <div id="tratores-e-nivelamento" class="sr-only">Seção de Motoniveladoras e Tratores</div>
+
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <EquipamentosCatalogo client:load items={equipamentos} mode="full" />
+
+      <div class="mt-12 flex flex-col items-start justify-between gap-4 rounded-2xl bg-ccg-forest p-8 text-white sm:flex-row sm:items-center">
+        <div>
+          <h2 class="font-display text-2xl font-extrabold">
+            Precisa de um pacote de equipamentos para frente completa de obra?
+          </h2>
+          <p class="mt-1 text-sm text-emerald-100/85">
+            Fale com nossa equipe técnica para dimensionar escavadeiras, basculantes, rolos e caminhões de apoio.
+          </p>
+        </div>
+        <a
+          href={buildWhatsAppUrl('Olá! Preciso dimensionar um pacote completo de máquinas para minha obra.')}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex min-h-[48px] shrink-0 items-center rounded-xl bg-ccg-yellow-400 px-6 py-3 text-sm font-extrabold text-ink-primary hover:bg-ccg-yellow-500"
+        >
+          Falar com Engenharia Comercial
+        </a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

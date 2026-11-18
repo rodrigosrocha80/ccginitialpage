@@ -1,0 +1,60 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { SITE } from '@/lib/site';
+---
+
+<BaseLayout
+  title="Política de Privacidade e Cookies (LGPD) | CCG Locações"
+  description="Informações sobre tratamento de dados pessoais e uso de cookies no site da CCG Construções e Terraplenagem LTDA conforme a Lei Geral de Proteção de Dados (LGPD)."
+>
+  <PageHero
+    eyebrow="Conformidade LGPD"
+    title="Política de Privacidade e Cookies"
+    description="Transparência sobre como coletamos, utilizamos e protegemos seus dados ao solicitar orçamentos ou navegar em nosso site."
+    breadcrumbs={[{ label: 'Política de Privacidade' }]}
+  />
+
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto max-w-4xl space-y-6 rounded-2xl border border-border-subtle bg-white p-6 text-base leading-relaxed text-ink-secondary shadow-xs sm:p-10">
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink-primary">1. Controlador dos Dados</h2>
+        <p class="mt-2">
+          Este site é operado pela <strong>{SITE.legalName}</strong>, inscrita no CNPJ sob o nº{' '}
+          <strong>{SITE.cnpj}</strong>, com sede em {SITE.address.full}.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink-primary">2. Dados Coletados e Finalidade</h2>
+        <p class="mt-2">
+          Ao preencher o formulário de solicitação de orçamento, coletamos apenas os dados
+          estritamente necessários para atendimento comercial e técnico (nome/empresa, telefone,
+          e-mail e descrição da demanda). Seus dados não são comercializados ou compartilhados com
+          terceiros estranhos ao atendimento da sua solicitação.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink-primary">3. Cookies e Analytics</h2>
+        <p class="mt-2">
+          Cookies essenciais garantem o funcionamento seguro da página e registram sua escolha de
+          consentimento. Scripts de análise de audiência e usabilidade são carregados exclusivamente
+          após o seu aceite explícito no banner de privacidade.
+        </p>
+      </div>
+
+      <div>
+        <h2 class="font-display text-2xl font-bold text-ink-primary">4. Seus Direitos (LGPD)</h2>
+        <p class="mt-2">
+          Nos termos da Lei nº 13.709/2018 (LGPD), você pode solicitar confirmação de tratamento,
+          acesso, correção ou exclusão de seus dados pessoais pelo e-mail{' '}
+          <a href={`mailto:${SITE.emailContratos}`} class="font-semibold text-ccg-green-800 underline">
+            {SITE.emailContratos}
+          </a>
+          .
+        </p>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

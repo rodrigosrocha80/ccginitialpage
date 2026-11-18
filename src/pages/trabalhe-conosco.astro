@@ -1,0 +1,59 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { SITE } from '@/lib/site';
+import equipeImg from '@/assets/hero/equipe-campo.jpg';
+---
+
+<BaseLayout
+  title="Trabalhe Conosco | CCG Construções e Locações"
+  description="Faça parte da equipe CCG em São Luís/MA e frentes de obra pelo Brasil. Envie seu currículo para curriculos@ccglocacao.com.br."
+>
+  <PageHero
+    eyebrow="Carreiras na CCG"
+    title="Venha fazer parte da nossa equipe de campo e engenharia"
+    description="A CCG Construções acredita que o sucesso dos negócios é resultado da dedicação de cada colaborador."
+    breadcrumbs={[{ label: 'Trabalhe Conosco' }]}
+  />
+
+  <section class="py-12 sm:py-16">
+    <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+      <div class="space-y-5 lg:col-span-7">
+        <h2 class="font-display text-3xl font-extrabold text-ink-primary">
+          Valorizamos profissionais comprometidos com ética, segurança e resultado
+        </h2>
+        <p class="text-base leading-relaxed text-ink-secondary">
+          Se você é operador de máquinas pesadas, motorista de caminhão, mecânico de linha amarela,
+          técnico em segurança do trabalho, engenheiro ou profissional administrativo, a CCG está de
+          portas abertas para receber seu currículo.
+        </p>
+
+        <div class="rounded-2xl border border-ccg-green-800/25 bg-ccg-green-50 p-6">
+          <p class="text-xs font-bold uppercase tracking-wider text-ccg-green-900">
+            Como se candidatar
+          </p>
+          <p class="mt-2 text-base text-ink-primary">
+            Envie seu currículo para o e-mail oficial informando o{' '}
+            <strong>cargo pretendido no assunto</strong>:
+          </p>
+          <a
+            href={`mailto:${SITE.emailCurriculos}?subject=Curr%C3%ADculo%20-%20Cargo%20Pretendido`}
+            class="mt-4 inline-flex min-h-[48px] items-center rounded-xl bg-ccg-green-800 px-6 py-3 font-display text-base font-bold text-white hover:bg-ccg-green-900"
+          >
+            Enviar currículo: {SITE.emailCurriculos}
+          </a>
+        </div>
+      </div>
+
+      <div class="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs lg:col-span-5">
+        <Image
+          src={equipeImg}
+          alt="Colaboradores da CCG Construções em frente de obra"
+          widths={[480, 760]}
+          class="aspect-[4/3] w-full object-cover"
+        />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

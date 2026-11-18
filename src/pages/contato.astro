@@ -1,0 +1,86 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { OrcamentoForm } from '@/components/OrcamentoForm';
+import { SITE, buildWhatsAppUrl } from '@/lib/site';
+
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+---
+
+<BaseLayout
+  title="Contato e Orçamentos | CCG Locações e Terraplenagem"
+  description="Entre em contato com a CCG em São Luís/MA. Telefones (98) 3313-9550 e (98) 99988-0545, WhatsApp comercial, e-mail contratos@ccglocacao.com.br e formulário de orçamento."
+>
+  <PageHero
+    eyebrow="Central de Atendimento"
+    title="Fale com nossa equipe comercial e de contratos"
+    description="Solicitação de orçamentos, disponibilidade de frota, dúvidas técnicas ou atendimento a editais e contratos corporativos."
+    breadcrumbs={[{ label: 'Contatos' }]}
+  />
+
+  <section id="orcamento" class="py-12 sm:py-16">
+    <div class="mx-auto grid max-w-7xl grid-cols-1 gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
+      <div class="space-y-6 lg:col-span-5">
+        <div class="rounded-2xl border border-border-subtle bg-white p-6 shadow-xs">
+          <h2 class="font-display text-xl font-bold text-ink-primary">Canais Diretos</h2>
+          <dl class="mt-4 space-y-4 text-sm">
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-ink-muted">Endereço</dt>
+              <dd class="mt-1 font-medium text-ink-primary">{SITE.address.full}</dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-ink-muted">Telefones</dt>
+              <dd class="mt-1 space-y-1">
+                <a href={SITE.phoneLandlineHref} class="block font-bold text-ccg-green-800 hover:underline">
+                  {SITE.phoneLandline} (Fixo)
+                </a>
+                <a
+                  href={buildWhatsAppUrl()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="block font-bold text-ccg-green-800 hover:underline"
+                >
+                  {SITE.whatsappPrimary.display} (WhatsApp)
+                </a>
+                <a
+                  href={`https://wa.me/${SITE.whatsappSecondary.e164}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="block font-bold text-ccg-green-800 hover:underline"
+                >
+                  {SITE.whatsappSecondary.display} (WhatsApp)
+                </a>
+                <span class="block text-ink-secondary">{SITE.phoneExtra}</span>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-ink-muted">E-mails</dt>
+              <dd class="mt-1 space-y-1">
+                <a href={`mailto:${SITE.emailContratos}`} class="block font-semibold text-ccg-green-800 hover:underline">
+                  {SITE.emailContratos} (Contratos e Orçamentos)
+                </a>
+                <a href={`mailto:${SITE.emailCurriculos}`} class="block text-ink-secondary hover:underline">
+                  {SITE.emailCurriculos} (Currículos)
+                </a>
+              </dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs">
+          <iframe
+            title="Mapa da matriz CCG Construções em Pedrinhas, São Luís - MA"
+            src={SITE.address.mapsEmbedUrl}
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+            class="h-64 w-full border-0"
+          ></iframe>
+        </div>
+      </div>
+
+      <div class="lg:col-span-7">
+        <OrcamentoForm client:load turnstileSiteKey={turnstileSiteKey} />
+      </div>
+    </div>
+  </section>
+</BaseLayout>

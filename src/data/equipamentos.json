@@ -1,0 +1,606 @@
+[
+  {
+    "id": "escavadeira-hidraulica-concha",
+    "nome": "Escavadeira Hidráulica com Concha",
+    "categoria": "Escavadeiras",
+    "imagem": "equipamentos/escavadeira-concha.jpg",
+    "resumo": "Força e precisão para escavações de grande porte, abertura de valas, carregamento de basculantes e movimentação de solo.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "16,4 / 20,3 / 21,7 / 22,8 / 36,1 / 38,4 t" },
+      { "label": "Capacidade da concha (Std)", "valor": "0,65 a 2,32 m³" }
+    ],
+    "modelosDetalhados": [
+      {
+        "modelo": "Hyundai 380 LC-9SH Robex",
+        "detalhes": [
+          "Peso operacional: 38.400 kg | Caçamba: 2,32 m³",
+          "Motor Hyundai D6AC-C, 6 cilindros | Potência bruta: 276 HP (206 kW) / 1.900 rpm | Torque: 120 kgf.m"
+        ]
+      },
+      {
+        "modelo": "Hyundai 360 LC-7A",
+        "detalhes": [
+          "Peso operacional: 36.100 kg | Caçamba: 1,50 m³",
+          "Motor Cummins QSL Tier 3, 6 cilindros | Potência: 296 HP / 1.850 rpm | Torque: 135,6 kgf.m"
+        ]
+      },
+      {
+        "modelo": "Hyundai 320 LC-7",
+        "detalhes": [
+          "Peso operacional: 32.200 kg | Caçamba: 1,74 m³",
+          "Motor Cummins C8.3-C Tier II, 6 cilindros | Potência: 259 HP / 1.750 rpm"
+        ]
+      },
+      {
+        "modelo": "Hyundai 210 LC-7",
+        "detalhes": [
+          "Peso operacional: 21.700 kg | Caçamba: 0,92 m³",
+          "Motor Cummins B5.9-C, 6 cilindros | Potência: 155 HP / 2.100 rpm | Torque: 61,4 kgf.m"
+        ]
+      },
+      {
+        "modelo": "Komatsu PC160",
+        "detalhes": [
+          "Peso operacional: 16.560 kg | Caçamba: 0,65 a 1,20 m³",
+          "Motor Komatsu SAA4D102E-2, 4 cilindros | Potência bruta: 121 HP (90 kW) @ 2.200 rpm"
+        ]
+      }
+    ],
+    "destaque": true,
+    "ordem": 1
+  },
+  {
+    "id": "escavadeira-hidraulica-rompedor",
+    "nome": "Escavadeira Hidráulica com Rompedor",
+    "categoria": "Escavadeiras",
+    "imagem": "equipamentos/escavadeira-rompedor.jpg",
+    "resumo": "Equipada com rompedor hidráulico pesado para demolição controlada, desmonte de rocha e abertura de valas em terreno rígido.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "21,7 / 38,4 t" },
+      { "label": "Peso do rompedor", "valor": "1,6 t e 2,5 t" }
+    ],
+    "destaque": true,
+    "ordem": 2
+  },
+  {
+    "id": "escavadeira-hidraulica-braco-longo",
+    "nome": "Escavadeira Hidráulica Braço Longo",
+    "categoria": "Escavadeiras",
+    "imagem": "equipamentos/escavadeira-braco-longo.jpg",
+    "resumo": "Lança estendida de 15 m para dragagem de canais, taludes elevados, lagoas e obras portuárias.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "24,4 t" },
+      { "label": "Capacidade da concha (Std)", "valor": "0,80 m³" },
+      { "label": "Comprimento da lança", "valor": "15 m" }
+    ],
+    "destaque": false,
+    "ordem": 3
+  },
+  {
+    "id": "escavadeira-hidraulica-pneu",
+    "nome": "Escavadeira Hidráulica de Pneu",
+    "categoria": "Escavadeiras",
+    "imagem": "equipamentos/escavadeira-pneu.jpg",
+    "resumo": "Mobilidade urbana e deslocamento ágil em frentes pavimentadas sem danificar o piso existente.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "21,8 t" },
+      { "label": "Capacidade da concha (Std)", "valor": "0,20 m³" }
+    ],
+    "destaque": false,
+    "ordem": 4
+  },
+  {
+    "id": "mini-escavadeira-esteira",
+    "nome": "Mini Escavadeira de Esteira",
+    "categoria": "Escavadeiras",
+    "imagem": "equipamentos/mini-escavadeira.jpg",
+    "resumo": "Dimensões compactas para valas urbanas, drenagem, obras comerciais e áreas com restrição de espaço.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "4,2 t (Case CX36B: 4.168 kg)" },
+      { "label": "Capacidade da concha", "valor": "0,186 a 0,30 m³" }
+    ],
+    "modelosDetalhados": [
+      {
+        "modelo": "Case CX36B",
+        "detalhes": [
+          "Peso operacional: 4.168 kg | Caçamba máx.: 0,186 m³ | Giro: 8,9 rpm",
+          "Motor Yanmar 3TNV88-BPYB diesel | Potência: 23 HP | Torque máx.: 98,4 N.m"
+        ]
+      }
+    ],
+    "destaque": false,
+    "ordem": 5
+  },
+  {
+    "id": "escavadeira-anfibia-braco-longo",
+    "nome": "Escavadeira Anfíbia Braço Longo",
+    "categoria": "Escavadeiras",
+    "imagem": "equipamentos/escavadeira-anfibia.jpg",
+    "resumo": "Projetada para áreas alagadas, manguezais, lagoas de decantação e serviços ambientais de alta complexidade.",
+    "especificacoes": [
+      { "label": "Aplicação", "valor": "Terrenos alagados, lagoas e dragagem" },
+      { "label": "Configuração", "valor": "Esteiras flutuantes + braço longo (sob consulta)" }
+    ],
+    "destaque": false,
+    "ordem": 6
+  },
+  {
+    "id": "escavadeira-rodoferroviaria",
+    "nome": "Escavadeira Rodoferroviária",
+    "categoria": "Escavadeiras",
+    "imagem": "equipamentos/escavadeira-rodoferroviaria.jpg",
+    "resumo": "Operação híbrida em solo e via férrea para manutenção de infraestrutura ferroviária e pátios logísticos.",
+    "especificacoes": [
+      { "label": "Aplicação", "valor": "Via permanente ferroviária e acessos" },
+      { "label": "Disponibilidade", "valor": "Locação técnica sob consulta" }
+    ],
+    "destaque": false,
+    "ordem": 7
+  },
+  {
+    "id": "pa-carregadeira-concha",
+    "nome": "Pá Carregadeira com Concha",
+    "categoria": "Carregadeiras",
+    "imagem": "equipamentos/pa-carregadeira-concha.jpg",
+    "resumo": "Alto rendimento no carregamento de agregados, bota-fora, minérios e movimentação de estoques em pátio.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "11,5 / 11,6 / 14,5 / 18,9 t" },
+      { "label": "Capacidade da caçamba (Std)", "valor": "1,8 a 3,0 m³" }
+    ],
+    "modelosDetalhados": [
+      {
+        "modelo": "Hyundai HL740-7A",
+        "detalhes": [
+          "Peso operacional: 11.550 kg | Caçamba: 2,0 m³ | Tração 4x4",
+          "Motor Cummins QSB6.7 | Potência bruta: 145 HP (108 kW) / 2.100 rpm | Torque: 69 kgf.m"
+        ]
+      },
+      {
+        "modelo": "Hyundai HL757-7A",
+        "detalhes": [
+          "Peso operacional: 14.500 kg | Caçamba: 2,6 m³ | Tração 4x4",
+          "Motor Cummins QSB6.7 | Potência bruta: 173 HP (129 kW) / 2.100 rpm | Torque: 83 kgf.m"
+        ]
+      },
+      {
+        "modelo": "Lonking CDM 835E",
+        "detalhes": [
+          "Peso operacional: 11.620 kg | Caçamba: 1,8 m³",
+          "Motor DF Cummins 6BT 5.9-C130 | Potência bruta: 130 HP / 2.200 rpm | Torque: 56 kgf.m"
+        ]
+      },
+      {
+        "modelo": "Lonking CDM 856",
+        "detalhes": [
+          "Peso operacional: 18.860 kg | Caçamba: 3,0 m³",
+          "Motor Cummins 6CTA8.3-C215 | Potência bruta: 215 HP / 2.200 rpm | Torque: 90,8 kgf.m"
+        ]
+      }
+    ],
+    "destaque": true,
+    "ordem": 8
+  },
+  {
+    "id": "pa-carregadeira-garfo",
+    "nome": "Pá Carregadeira com Garfo",
+    "categoria": "Carregadeiras",
+    "imagem": "equipamentos/pa-carregadeira-garfo.jpg",
+    "resumo": "Movimentação segura de tubos, pré-moldados, paletes pesados e cargas industriais em canteiro.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "11,5 / 14 t" },
+      { "label": "Capacidade de carga", "valor": "Até 7 t" }
+    ],
+    "destaque": false,
+    "ordem": 9
+  },
+  {
+    "id": "mini-carregadeira",
+    "nome": "Mini Carregadeira",
+    "categoria": "Carregadeiras",
+    "imagem": "equipamentos/mini-carregadeira.jpg",
+    "resumo": "Agilidade em espaços confinados, limpeza de obra, carregamento leve e apoio a edificações.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "2,5 / 3,1 t" },
+      { "label": "Carga operacional caçamba", "valor": "681 / 907 kg" }
+    ],
+    "destaque": false,
+    "ordem": 10
+  },
+  {
+    "id": "mini-carregadeira-vassoura",
+    "nome": "Mini Carregadeira com Vassoura",
+    "categoria": "Carregadeiras",
+    "imagem": "equipamentos/mini-carregadeira-vassoura.jpg",
+    "resumo": "Ideal para varrição mecanizada antes de imprimação asfáltica, limpeza de pátios industriais e vias internas.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "2,5 / 3,1 t" },
+      { "label": "Carga operacional caçamba", "valor": "681 / 907 kg" },
+      { "label": "Largura de trabalho da vassoura", "valor": "72\" (1.828 mm)" }
+    ],
+    "destaque": false,
+    "ordem": 11
+  },
+  {
+    "id": "retroescavadeira-concha",
+    "nome": "Retroescavadeira com Concha",
+    "categoria": "Retroescavadeiras",
+    "imagem": "equipamentos/retroescavadeira-concha.png",
+    "resumo": "Equipamento multiuso 4x4 indispensável para drenagem, saneamento, escavação de sapatas e carregamento leve.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "6,1 a 7,15 t" },
+      { "label": "Caçamba retro / carregadeira", "valor": "0,30 m³ / 0,80 a 0,96 m³" }
+    ],
+    "modelosDetalhados": [
+      {
+        "modelo": "Case 580N",
+        "detalhes": [
+          "Peso operacional: 7.157 kg | Caçamba: 0,96 m³ | Retro: 0,30 m³ | Tração 4x4",
+          "Motor Case 445T/M3, 4 cilindros | Potência: 75 HP (56 kW)"
+        ]
+      },
+      {
+        "modelo": "Case 580M",
+        "detalhes": [
+          "Peso operacional: 6.707 kg | Caçamba: 0,96 m³ | Retro: 0,30 m³ | Tração 4x4",
+          "Motor Cummins 4BT4.5, 4 cilindros | Potência bruta: 89 HP (66 kW)"
+        ]
+      },
+      {
+        "modelo": "JCB 3C Plus",
+        "detalhes": [
+          "Configuração multiuso 4x4 para escavação e carregamento em obra civil e infraestrutura"
+        ]
+      }
+    ],
+    "destaque": true,
+    "ordem": 12
+  },
+  {
+    "id": "retroescavadeira-rompedor",
+    "nome": "Retroescavadeira com Rompedor",
+    "categoria": "Retroescavadeiras",
+    "imagem": "equipamentos/retroescavadeira-rompedor.jpg",
+    "resumo": "Versatilidade de retroescavadeira aliada ao rompedor hidráulico para abertura de valas em pavimento ou rocha.",
+    "especificacoes": [
+      { "label": "Peso total do rompedor", "valor": "125 kg e 365 kg" },
+      { "label": "Tração", "valor": "4x4" }
+    ],
+    "destaque": false,
+    "ordem": 13
+  },
+  {
+    "id": "trator-de-esteira",
+    "nome": "Trator de Esteira",
+    "categoria": "Tratores e Nivelamento",
+    "imagem": "equipamentos/trator-esteira.jpg",
+    "resumo": "Alta força de empuxo para supressão vegetal, abertura de acessos, corte de talude e espalhamento de aterros.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "12,9 / 15,3 / 24 t" },
+      { "label": "Aplicação", "valor": "Terraplenagem pesada e desmatamento" }
+    ],
+    "destaque": true,
+    "ordem": 14
+  },
+  {
+    "id": "motoniveladora",
+    "nome": "Motoniveladora",
+    "categoria": "Tratores e Nivelamento",
+    "imagem": "equipamentos/motoniveladora.jpg",
+    "resumo": "Precisão de nivelamento para subleito, base, sub-base, acabamento de plataformas e conservação rodoviária.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "15,8 a 19,3 t" },
+      { "label": "Comprimento da lâmina", "valor": "3.658 mm" }
+    ],
+    "modelosDetalhados": [
+      {
+        "modelo": "Volvo G930",
+        "detalhes": [
+          "Peso operacional: 15.800 kg | Lâmina: 22 x 635 x 3.658 mm (Aço alto carbono SAE 1050)",
+          "Motor Volvo D7E, 6 cilindros | Potência líquida: 155 / 175 / 195 HP @ 2.100 rpm"
+        ]
+      }
+    ],
+    "destaque": true,
+    "ordem": 15
+  },
+  {
+    "id": "trator-agricola",
+    "nome": "Trator Agrícola",
+    "categoria": "Tratores e Nivelamento",
+    "imagem": "equipamentos/trator-agricola.jpg",
+    "resumo": "Tração auxiliar para gradeamento, reboque de implementos, preparo de solo e hidrossemeadura.",
+    "especificacoes": [
+      { "label": "Peso sem lastro", "valor": "4,5 t" },
+      { "label": "Peso com lastro", "valor": "6,2 t" }
+    ],
+    "destaque": false,
+    "ordem": 16
+  },
+  {
+    "id": "rolo-compactador-pe-carneiro",
+    "nome": "Rolo Compactador Pé de Carneiro",
+    "categoria": "Compactação",
+    "imagem": "equipamentos/rolo-pe-carneiro.jpg",
+    "resumo": "Compactação vibratória profunda para solos coesivos, aterros de grande espessura e barragens.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "12 t" },
+      { "label": "Frequência de vibração", "valor": "Até 1.980 vpm" }
+    ],
+    "destaque": false,
+    "ordem": 17
+  },
+  {
+    "id": "rolo-compactador-liso",
+    "nome": "Rolo Compactador Liso",
+    "categoria": "Compactação",
+    "imagem": "equipamentos/rolo-liso.jpg",
+    "resumo": "Compactação uniforme de base, sub-base granular, bica corrida e fechamento de plataformas.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "12 t" },
+      { "label": "Frequência de vibração", "valor": "Até 1.980 vpm" }
+    ],
+    "destaque": true,
+    "ordem": 18
+  },
+  {
+    "id": "rolo-compactador-asfalto-chapa",
+    "nome": "Rolo Compactador Asfalto de Chapa",
+    "categoria": "Compactação",
+    "imagem": "equipamentos/rolo-chapa.jpg",
+    "resumo": "Acabamento de massa asfáltica com cilindro tandem liso para rodovias, pátios e vias urbanas.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "7,4 t" },
+      { "label": "Largura de compactação", "valor": "1.676 mm" }
+    ],
+    "destaque": false,
+    "ordem": 19
+  },
+  {
+    "id": "rolo-compactador-asfalto-pneus",
+    "nome": "Rolo Compactador Asfalto de Pneus",
+    "categoria": "Compactação",
+    "imagem": "equipamentos/rolo-pneus.jpg",
+    "resumo": "Selagem de revestimento asfáltico (CBUQ) e fechamento de camadas granulares com alta carga por roda.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "21 t" },
+      { "label": "Largura de compactação", "valor": "1.800 mm" }
+    ],
+    "destaque": false,
+    "ordem": 20
+  },
+  {
+    "id": "mini-rolo-compactador",
+    "nome": "Mini Rolo Compactador",
+    "categoria": "Compactação",
+    "imagem": "equipamentos/mini-rolo.png",
+    "resumo": "Compactação segura de valas estreitas e áreas confinadas, com opção de operação por controle remoto.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "1.300 a 1.600 kg" },
+      { "label": "Largura do tambor / Freq.", "valor": "61 a 90 cm | 42 Hz" },
+      { "label": "Operação", "valor": "Cabine aberta ou controle remoto" }
+    ],
+    "destaque": false,
+    "ordem": 21
+  },
+  {
+    "id": "rolo-compactador-vibratorio",
+    "nome": "Rolo Compactador Vibratório",
+    "categoria": "Compactação",
+    "imagem": "equipamentos/rolo-vibratorio.png",
+    "resumo": "Equipamento compacto de alta produtividade para calçadas, reparos viários e acabamento de bordas.",
+    "especificacoes": [
+      { "label": "Produtividade", "valor": "7.246 m²/h" },
+      { "label": "Velocidade / Motor", "valor": "8 km/h | 20 HP" }
+    ],
+    "destaque": false,
+    "ordem": 22
+  },
+  {
+    "id": "vibroacabadora",
+    "nome": "Vibroacabadora de Asfalto",
+    "categoria": "Pavimentação",
+    "imagem": "equipamentos/vibroacabadora.jpg",
+    "resumo": "Aplicação uniforme de CBUQ com sistema de vibração de alta eficiência para rodovias, pátios e vias urbanas.",
+    "especificacoes": [
+      { "label": "Capacidade de produção", "valor": "450 t/h" },
+      { "label": "Aplicação", "valor": "Pavimentação asfáltica contínua" }
+    ],
+    "destaque": false,
+    "ordem": 23
+  },
+  {
+    "id": "fresadora",
+    "nome": "Fresadora de Pavimento",
+    "categoria": "Pavimentação",
+    "imagem": "equipamentos/fresadora.png",
+    "resumo": "Remoção controlada de camadas asfálticas e nivelamento de superfícies para restauração viária.",
+    "especificacoes": [
+      { "label": "Peso operacional", "valor": "14,7 t" },
+      { "label": "Largura de fresagem", "valor": "1.000 mm" }
+    ],
+    "destaque": false,
+    "ordem": 24
+  },
+  {
+    "id": "usina-asfalto-movel",
+    "nome": "Usina de Asfalto Móvel",
+    "categoria": "Pavimentação",
+    "imagem": "equipamentos/usina-asfalto-movel.jpg",
+    "resumo": "Produção de mistura asfáltica fresca e homogênea diretamente no canteiro, reduzindo custos de transporte e perdas térmicas.",
+    "especificacoes": [
+      { "label": "Mobilidade", "valor": "Instalação rápida entre frentes de obra" },
+      { "label": "Benefício", "valor": "Fornecimento contínuo e controle de traço" }
+    ],
+    "destaque": false,
+    "ordem": 25
+  },
+  {
+    "id": "caminhao-espargidor",
+    "nome": "Caminhão Espargidor",
+    "categoria": "Pavimentação",
+    "imagem": "equipamentos/caminhao-espargidor.jpg",
+    "resumo": "Distribuição precisa de emulsão e ligante asfáltico para imprimação e pintura de ligação.",
+    "especificacoes": [
+      { "label": "Capacidade volumétrica", "valor": "6 m³" },
+      { "label": "Aplicação", "valor": "Imprimação e pintura de ligação" }
+    ],
+    "destaque": false,
+    "ordem": 26
+  },
+  {
+    "id": "caminhao-basculante",
+    "nome": "Caminhão Basculante",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/caminhao-basculante.jpg",
+    "resumo": "Transporte contínuo de material de 1ª categoria, brita, aterro e bota-fora em canteiros e rodovias.",
+    "especificacoes": [
+      { "label": "Capacidade basculante", "valor": "12 / 14 m³" },
+      { "label": "Aplicação", "valor": "Terraplenagem, mineração e pavimentação" }
+    ],
+    "destaque": true,
+    "ordem": 27
+  },
+  {
+    "id": "caminhao-pipa",
+    "nome": "Caminhão Pipa",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/caminhao-pipa.jpg",
+    "resumo": "Umectação de vias de serviço (controle de poeira), compactação de aterros e abastecimento de água em obra.",
+    "especificacoes": [
+      { "label": "Capacidade volumétrica", "valor": "18 / 20 m³" },
+      { "label": "Aplicação", "valor": "Controle ambiental e compactação" }
+    ],
+    "destaque": false,
+    "ordem": 28
+  },
+  {
+    "id": "caminhao-munck",
+    "nome": "Caminhão Munck",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/caminhao-munck.jpg",
+    "resumo": "Içamento, carga e descarga de tubulações, pré-moldados, estruturas metálicas e componentes industriais.",
+    "especificacoes": [
+      { "label": "Capacidade (lanças fechadas)", "valor": "10 / 14,2 / 19,5 t" },
+      { "label": "Capacidade (lanças abertas)", "valor": "0,3 / 0,6 / 0,85 t" }
+    ],
+    "destaque": true,
+    "ordem": 29
+  },
+  {
+    "id": "caminhao-comboio",
+    "nome": "Caminhão Comboio",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/caminhao-comboio.jpg",
+    "resumo": "Abastecimento de diesel e lubrificação preventiva diretamente na frente de trabalho, evitando paradas de frota.",
+    "especificacoes": [
+      { "label": "Tanque de combustível", "valor": "6 / 8 / 12 m³" },
+      { "label": "Função", "valor": "Abastecimento e lubrificação em campo" }
+    ],
+    "destaque": false,
+    "ordem": 30
+  },
+  {
+    "id": "caminhao-betoneira",
+    "nome": "Caminhão Betoneira",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/caminhao-betoneira.jpg",
+    "resumo": "Transporte e homogeneização de concreto usinado para drenagens, pontes, fundações e pisos industriais.",
+    "especificacoes": [
+      { "label": "Capacidade volumétrica", "valor": "8 m³" },
+      { "label": "Aplicação", "valor": "Concretagem estrutural e drenagem" }
+    ],
+    "destaque": false,
+    "ordem": 31
+  },
+  {
+    "id": "auto-betoneira",
+    "nome": "Auto Betoneira",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/auto-betoneira.jpg",
+    "resumo": "Autocarregamento e produção de concreto diretamente em obras remotas ou frentes de difícil acesso.",
+    "especificacoes": [
+      { "label": "Capacidade máx. de concreto", "valor": "4 m³" },
+      { "label": "Vantagem", "valor": "Autonomia de dosagem em canteiro" }
+    ],
+    "destaque": false,
+    "ordem": 32
+  },
+  {
+    "id": "caminhao-plataforma",
+    "nome": "Caminhão Plataforma",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/caminhao-plataforma.jpg",
+    "resumo": "Mobilização rápida de mini máquinas, geradores, rolos compactadores e implementos entre canteiros.",
+    "especificacoes": [
+      { "label": "Capacidade operacional", "valor": "Até 21 t" },
+      { "label": "Aplicação", "valor": "Logística de equipamentos médios" }
+    ],
+    "destaque": false,
+    "ordem": 33
+  },
+  {
+    "id": "carreta-prancha",
+    "nome": "Carreta Prancha",
+    "categoria": "Caminhões e Logística",
+    "imagem": "equipamentos/carreta-prancha.jpg",
+    "resumo": "Transporte dedicado de máquinas pesadas de linha amarela (escavadeiras, tratores e motoniveladoras) com segurança.",
+    "especificacoes": [
+      { "label": "Configuração 3 eixos", "valor": "Até 45 t" },
+      { "label": "Configuração 2 eixos", "valor": "Até 27 t" }
+    ],
+    "destaque": false,
+    "ordem": 34
+  },
+  {
+    "id": "toyota-hilux-4x4",
+    "nome": "Toyota Hilux DC 2.4L 4x4 Diesel",
+    "categoria": "Veículos de Apoio",
+    "imagem": "equipamentos/toyota-hilux.png",
+    "resumo": "Apoio operacional e engenharia de campo em estradas não pavimentadas e áreas remotas.",
+    "especificacoes": [
+      { "label": "Capacidade", "valor": "Cabine dupla — 5 passageiros" },
+      { "label": "Tração", "valor": "4x4 Diesel manual" }
+    ],
+    "destaque": false,
+    "ordem": 35
+  },
+  {
+    "id": "fiat-strada-freedom",
+    "nome": "Fiat Strada Freedom Cabine Dupla 1.3",
+    "categoria": "Veículos de Apoio",
+    "imagem": "equipamentos/fiat-strada.png",
+    "resumo": "Deslocamento ágil de supervisão, topografia, segurança do trabalho e suprimentos leves.",
+    "especificacoes": [
+      { "label": "Capacidade", "valor": "Cabine dupla — 5 passageiros" },
+      { "label": "Aplicação", "valor": "Fiscalização e apoio de obra" }
+    ],
+    "destaque": false,
+    "ordem": 36
+  },
+  {
+    "id": "van-ccg",
+    "nome": "Van de Transporte de Equipes",
+    "categoria": "Veículos de Apoio",
+    "imagem": "equipamentos/van-ccg.jpg",
+    "resumo": "Mobilidade segura e climatizada para frentes operacionais, operadores e equipes técnicas.",
+    "especificacoes": [
+      { "label": "Capacidade", "valor": "Até 16 passageiros" },
+      { "label": "Aplicação", "valor": "Transporte de equipes em contrato" }
+    ],
+    "destaque": false,
+    "ordem": 37
+  },
+  {
+    "id": "micro-onibus",
+    "nome": "Micro-ônibus Operacional",
+    "categoria": "Veículos de Apoio",
+    "imagem": "equipamentos/micro-onibus.jpg",
+    "resumo": "Transporte coletivo de colaboradores para obras industriais e canteiros de médio e grande porte.",
+    "especificacoes": [
+      { "label": "Capacidade", "valor": "Até 31 passageiros" },
+      { "label": "Aplicação", "valor": "Logística de pessoal em obra" }
+    ],
+    "destaque": false,
+    "ordem": 38
+  }
+]
