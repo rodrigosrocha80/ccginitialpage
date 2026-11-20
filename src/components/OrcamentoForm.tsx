@@ -1,5 +1,26 @@
-import { useEffect, useState, type SyntheticEvent } from 'react';
+import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { buildWhatsAppUrl } from '@/lib/site';
+
+interface TurnstileApi {
+  render: (
+    container: HTMLElement,
+    options: {
+      sitekey: string;
+      theme?: 'light' | 'dark' | 'auto';
+      callback?: (token: string) => void;
+      'expired-callback'?: () => void;
+      'error-callback'?: () => void;
+    }
+  ) => string;
+  reset: (widgetId?: string) => void;
+  remove: (widgetId: string) => void;
+}
+
+declare global {
+  interface Window {
+    turnstile?: TurnstileApi;
+  }
+}
 
 interface OrcamentoFormProps {
   initialEquipment?: string;
@@ -36,9 +57,71 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
   const [equipamentoInteresse, setEquipamentoInteresse] = useState(initialEquipment);
   const [consentimentoLgpd, setConsentimentoLgpd] = useState(false);
   const [website, setWebsite] = useState(''); // honeypot
+  const [turnstileToken, setTurnstileToken] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [feedback, setFeedback] = useState('');
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const turnstileContainerRef = useRef<HTMLDivElement | null>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!turnstileSiteKey || !turnstileContainerRef.current) return;
+
+    let cancelled = false;
+
+    const renderWidget = () => {
+      if (cancelled || !turnstileContainerRef.current || !window.turnstile) return;
+      if (turnstileWidgetIdRef.current) return;
+      turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+        sitekey: turnstileSiteKey,
+        theme: 'light',
+        callback: (token: string) => setTurnstileToken(token),
+        'expired-callback': () => setTurnstileToken(''),
+        'error-callback': () => setTurnstileToken(''),
+      });
+    };
+
+    if (window.turnstile) {
+      renderWidget();
+    } else {
+      const existingScript = document.querySelector<HTMLScriptElement>(
+        'script[src^="https://challenges.cloudflare.com/turnstile/v0/api.js"]'
+      );
+      if (existingScript) {
+        existingScript.addEventListener('load', renderWidget);
+      } else {
+        const script = document.createElement('script');
+        script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        script.async = true;
+        script.defer = true;
+        script.addEventListener('load', renderWidget);
+        document.head.appendChild(script);
+      }
+    }
+
+    return () => {
+      cancelled = true;
+      if (turnstileWidgetIdRef.current && window.turnstile) {
+        try {
+          window.turnstile.remove(turnstileWidgetIdRef.current);
+        } catch {
+          // ignora se o widget já foi removido
+        }
+        turnstileWidgetIdRef.current = null;
+      }
+    };
+  }, [turnstileSiteKey]);
+
+  const resetTurnstile = () => {
+    setTurnstileToken('');
+    if (turnstileWidgetIdRef.current && window.turnstile) {
+      try {
+        window.turnstile.reset(turnstileWidgetIdRef.current);
+      } catch {
+        // ignora erro ao resetar widget
+      }
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -75,6 +158,7 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
       equipamentoInteresse: equipamentoInteresse || undefined,
       consentimentoLgpd,
       website,
+      turnstileToken: turnstileToken || undefined,
     };
 
     const errs = validateClientQuote(payload);
@@ -82,6 +166,12 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
       setFieldErrors(errs);
       setStatus('error');
       setFeedback('Por favor, revise os campos destacados.');
+      return;
+    }
+
+    if (turnstileSiteKey && !turnstileToken) {
+      setStatus('error');
+      setFeedback('Aguarde ou conclua a verificação anti-spam antes de enviar.');
       return;
     }
 
@@ -104,6 +194,7 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
         setFeedback(
           json.message || 'Não foi possível enviar o formulário. Tente novamente ou use o WhatsApp.'
         );
+        resetTurnstile();
         return;
       }
 
@@ -118,11 +209,13 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
       setMensagem('');
       setEquipamentoInteresse('');
       setConsentimentoLgpd(false);
+      resetTurnstile();
     } catch {
       setStatus('error');
       setFeedback(
         'Erro de conexão ao enviar sua solicitação. Utilize o botão de WhatsApp ao lado para atendimento imediato.'
       );
+      resetTurnstile();
     }
   };
 
@@ -287,13 +380,7 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
         )}
       </div>
 
-      {turnstileSiteKey && (
-        <div
-          className="cf-turnstile"
-          data-sitekey={turnstileSiteKey}
-          data-theme="light"
-        />
-      )}
+      {turnstileSiteKey && <div ref={turnstileContainerRef} className="min-h-[65px]" />}
 
       {feedback && (
         <div
