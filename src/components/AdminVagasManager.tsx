@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type SyntheticEvent } from 'react';
+import { ShareBadge } from '@/components/ShareBadge';
 import {
   CANDIDATURA_STATUS_LABELS,
   CANDIDATURA_STATUS_OPTIONS,
@@ -15,6 +16,7 @@ import {
   type VagaModalidade,
   type VagaStatus,
 } from '@/lib/careersSchema';
+import { buildVagaShareData } from '@/lib/share';
 
 interface EnvStatus {
   postgresConfigured: boolean;
@@ -642,7 +644,7 @@ export function AdminVagasManager() {
               {vagas.map((vaga) => (
                 <div
                   key={vaga.id}
-                  className="flex flex-col justify-between gap-4 rounded-2xl border border-border-subtle bg-white p-5 shadow-xs lg:flex-row lg:items-center"
+                  className="relative flex flex-col justify-between gap-4 rounded-2xl border border-border-subtle bg-white p-5 shadow-xs has-[[aria-expanded=true]]:z-30 lg:flex-row lg:items-center"
                 >
                   <div className="space-y-1.5">
                     <div className="flex flex-wrap items-center gap-2">
@@ -675,6 +677,16 @@ export function AdminVagasManager() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
+                    <ShareBadge
+                      {...buildVagaShareData(vaga)}
+                      variant="admin"
+                      disabled={vaga.status !== 'aberta'}
+                      disabledTitle="Altere o status da vaga para Aberta para compartilhar o link público"
+                      ariaLabel={`Compartilhar vaga ${vaga.titulo}`}
+                      onCopied={() =>
+                        showToast(`Link da vaga "${vaga.titulo}" copiado para a área de transferência!`)
+                      }
+                    />
                     <button
                       type="button"
                       onClick={() => {

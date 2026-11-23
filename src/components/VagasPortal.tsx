@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type SyntheticEvent } from 'react';
 import { upload } from '@vercel/blob/client';
+import { ShareBadge } from '@/components/ShareBadge';
 import {
   ALLOWED_RESUME_EXTENSIONS,
   MAX_RESUME_BYTES,
@@ -7,6 +8,7 @@ import {
   isAllowedResumeFile,
   type Vaga,
 } from '@/lib/careersSchema';
+import { buildVagaShareData } from '@/lib/share';
 
 interface TurnstileApi {
   render: (
@@ -66,6 +68,7 @@ export function VagasPortal({
   const [filtroArea, setFiltroArea] = useState('');
   const [filtroModalidade, setFiltroModalidade] = useState('');
   const [vagaDetalhes, setVagaDetalhes] = useState<Vaga | null>(null);
+  const [sharedVagaNotFound, setSharedVagaNotFound] = useState(false);
   const [selectedVagaId, setSelectedVagaId] = useState<string>(
     initialVagas[0]?.id || ''
   );
@@ -140,9 +143,24 @@ export function VagasPortal({
       if (found) {
         setSelectedVagaId(found.id);
         setVagaDetalhes(found);
+        setSharedVagaNotFound(false);
+      } else {
+        setSharedVagaNotFound(true);
       }
     }
   }, [vagas]);
+
+  // Fechar modal com Escape (sem interferir quando um menu de compartilhamento estiver aberto)
+  useEffect(() => {
+    if (!vagaDetalhes) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      if (document.querySelector('[aria-haspopup="menu"][aria-expanded="true"]')) return;
+      setVagaDetalhes(null);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [vagaDetalhes]);
 
   // Cloudflare Turnstile opcional
   useEffect(() => {
@@ -463,6 +481,25 @@ export function VagasPortal({
           </button>
         </div>
 
+        {sharedVagaNotFound && (
+          <div
+            role="status"
+            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-300 bg-amber-50 px-5 py-3.5 text-sm text-amber-950"
+          >
+            <p>
+              A vaga acessada por este link não está mais aberta no momento. Confira abaixo outras
+              oportunidades disponíveis ou cadastre seu currículo no Banco de Talentos.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSharedVagaNotFound(false)}
+              className="cursor-pointer text-xs font-bold text-amber-900 underline-offset-4 hover:underline"
+            >
+              Fechar aviso
+            </button>
+          </div>
+        )}
+
         {vagas.length > 0 && (
           <div className="grid grid-cols-1 gap-3 rounded-2xl border border-border-subtle bg-white p-4 shadow-xs sm:grid-cols-12">
             <div className="sm:col-span-6">
@@ -558,25 +595,33 @@ export function VagasPortal({
               return (
                 <article
                   key={vaga.id}
-                  className={`flex flex-col justify-between rounded-2xl border bg-white p-6 shadow-xs transition-all ${
+                  className={`relative flex flex-col justify-between rounded-2xl border bg-white p-6 shadow-xs transition-all has-[[aria-expanded=true]]:z-30 ${
                     isSelected
                       ? 'border-ccg-green-700 ring-2 ring-ccg-green-700/20'
                       : 'border-border-subtle hover:border-ccg-green-700/50 hover:shadow-sm'
                   }`}
                 >
                   <div className="space-y-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {vaga.destaque && (
-                        <span className="rounded-full bg-ccg-yellow-400 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wide text-ink-primary">
-                          Destaque
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        {vaga.destaque && (
+                          <span className="rounded-full bg-ccg-yellow-400 px-2.5 py-0.5 text-xs font-extrabold uppercase tracking-wide text-ink-primary">
+                            Destaque
+                          </span>
+                        )}
+                        <span className="rounded-full bg-ccg-green-50 px-2.5 py-0.5 text-xs font-semibold text-ccg-green-900">
+                          {vaga.area}
                         </span>
-                      )}
-                      <span className="rounded-full bg-ccg-green-50 px-2.5 py-0.5 text-xs font-semibold text-ccg-green-900">
-                        {vaga.area}
-                      </span>
-                      <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-ink-secondary">
-                        {vaga.tipoContrato}
-                      </span>
+                        <span className="rounded-full bg-surface-muted px-2.5 py-0.5 text-xs font-medium text-ink-secondary">
+                          {vaga.tipoContrato}
+                        </span>
+                      </div>
+                      <ShareBadge
+                        {...buildVagaShareData(vaga)}
+                        variant="inline"
+                        ariaLabel={`Compartilhar vaga ${vaga.titulo}`}
+                        className="shrink-0"
+                      />
                     </div>
 
                     <h3 className="font-display text-xl font-extrabold text-ink-primary">
@@ -660,14 +705,21 @@ export function VagasPortal({
                   {vagaDetalhes.faixaSalarial ? ` • ${vagaDetalhes.faixaSalarial}` : ''}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setVagaDetalhes(null)}
-                aria-label="Fechar detalhes da vaga"
-                className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border-subtle text-ink-secondary hover:bg-surface-muted"
-              >
-                ✕
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <ShareBadge
+                  {...buildVagaShareData(vagaDetalhes)}
+                  variant="inline"
+                  ariaLabel={`Compartilhar vaga ${vagaDetalhes.titulo}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setVagaDetalhes(null)}
+                  aria-label="Fechar detalhes da vaga"
+                  className="inline-flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-border-subtle text-ink-secondary hover:bg-surface-muted"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
 
             <div className="mt-5 space-y-5 text-sm leading-relaxed text-ink-secondary">

@@ -3,8 +3,10 @@ import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
+import ShareBadge from '@/components/ShareBadge.astro';
 import { getAssetImage } from '@/lib/images';
 import { buildFaqSchema, buildServiceCatalogSchema } from '@/lib/seo';
+import { buildEquipmentShareData } from '@/lib/share';
 import { SITE, buildWhatsAppUrl } from '@/lib/site';
 
 const allItems = (await getCollection('equipamentos'))
@@ -111,19 +113,27 @@ const extraSchema = [
 
       <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {caminhoes.map((item) => (
-          <article class="flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md">
-            <a
-              href={`/equipamentos/${item.id}`}
-              class="flex aspect-[4/3] items-center justify-center overflow-hidden bg-white p-4"
-            >
-              <Image
-                src={getAssetImage(item.imagem)}
-                alt={`${item.nome} para locação na CCG`}
-                widths={[360]}
-                loading="lazy"
-                class="h-full w-full object-contain"
+          <article class="relative flex flex-col rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md has-[[aria-expanded=true]]:z-30">
+            <div class="relative aspect-[4/3] rounded-t-2xl bg-white">
+              <a
+                href={`/equipamentos/${item.id}`}
+                class="flex h-full w-full items-center justify-center overflow-hidden rounded-t-2xl px-4 pb-4 pt-11"
+              >
+                <Image
+                  src={getAssetImage(item.imagem)}
+                  alt={`${item.nome} para locação na CCG`}
+                  widths={[360]}
+                  loading="lazy"
+                  class="h-full w-full object-contain"
+                />
+              </a>
+              <ShareBadge
+                {...buildEquipmentShareData(item)}
+                variant="overlay"
+                ariaLabel={`Compartilhar ${item.nome}`}
+                class="absolute right-3 top-3 z-20"
               />
-            </a>
+            </div>
             <div class="flex flex-1 flex-col border-t border-border-subtle p-5">
               <h3 class="font-display text-xl font-bold text-ink-primary">
                 <a href={`/equipamentos/${item.id}`} class="hover:text-ccg-green-800 hover:underline">
@@ -181,24 +191,34 @@ const extraSchema = [
 
       <div class="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {apoio.map((item) => (
-          <a
-            href={`/equipamentos/${item.id}`}
-            class="group flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-canvas p-4 transition-shadow hover:bg-white hover:shadow-md"
-          >
-            <div class="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-xl bg-white p-3">
-              <Image
-                src={getAssetImage(item.imagem)}
-                alt={item.nome}
-                widths={[320]}
-                loading="lazy"
-                class="h-full w-full object-contain"
+          <article class="group relative flex flex-col rounded-2xl border border-border-subtle bg-surface-canvas p-4 transition-shadow hover:bg-white hover:shadow-md has-[[aria-expanded=true]]:z-30">
+            <div class="relative aspect-[4/3] rounded-xl bg-white">
+              <a
+                href={`/equipamentos/${item.id}`}
+                class="flex h-full w-full items-center justify-center overflow-hidden rounded-xl px-3 pb-3 pt-10"
+              >
+                <Image
+                  src={getAssetImage(item.imagem)}
+                  alt={item.nome}
+                  widths={[320]}
+                  loading="lazy"
+                  class="h-full w-full object-contain"
+                />
+              </a>
+              <ShareBadge
+                {...buildEquipmentShareData(item)}
+                variant="overlay"
+                ariaLabel={`Compartilhar ${item.nome}`}
+                class="absolute right-2 top-2 z-20"
               />
             </div>
-            <h3 class="mt-3 font-display text-base font-bold text-ink-primary group-hover:text-ccg-green-800">
-              {item.nome}
+            <h3 class="mt-3 font-display text-base font-bold text-ink-primary">
+              <a href={`/equipamentos/${item.id}`} class="transition-colors hover:text-ccg-green-800 hover:underline">
+                {item.nome}
+              </a>
             </h3>
             <p class="mt-1 text-xs text-ink-secondary">{item.resumo}</p>
-          </a>
+          </article>
         ))}
       </div>
     </div>

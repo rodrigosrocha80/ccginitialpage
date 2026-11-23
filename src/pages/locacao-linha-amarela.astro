@@ -3,12 +3,14 @@ import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
+import ShareBadge from '@/components/ShareBadge.astro';
 import { getAssetImage } from '@/lib/images';
 import {
   EQUIPMENT_CATEGORIES,
   buildFaqSchema,
   buildServiceCatalogSchema,
 } from '@/lib/seo';
+import { buildEquipmentShareData } from '@/lib/share';
 import { SITE, buildWhatsAppUrl } from '@/lib/site';
 
 const LINHA_AMARELA_CATS = new Set([
@@ -158,19 +160,27 @@ const extraSchema = [
 
       <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {equipamentos.map((item) => (
-          <article class="flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md">
-            <a
-              href={`/equipamentos/${item.id}`}
-              class="flex aspect-[4/3] items-center justify-center overflow-hidden bg-white p-4"
-            >
-              <Image
-                src={getAssetImage(item.imagem)}
-                alt={`${item.nome} — locação CCG`}
-                widths={[320]}
-                loading="lazy"
-                class="h-full w-full object-contain"
+          <article class="relative flex flex-col rounded-2xl border border-border-subtle bg-white shadow-xs transition-shadow hover:shadow-md has-[[aria-expanded=true]]:z-30">
+            <div class="relative aspect-[4/3] rounded-t-2xl bg-white">
+              <a
+                href={`/equipamentos/${item.id}`}
+                class="flex h-full w-full items-center justify-center overflow-hidden rounded-t-2xl px-4 pb-4 pt-11"
+              >
+                <Image
+                  src={getAssetImage(item.imagem)}
+                  alt={`${item.nome} — locação CCG`}
+                  widths={[320]}
+                  loading="lazy"
+                  class="h-full w-full object-contain"
+                />
+              </a>
+              <ShareBadge
+                {...buildEquipmentShareData(item)}
+                variant="overlay"
+                ariaLabel={`Compartilhar ${item.nome}`}
+                class="absolute right-3 top-3 z-20"
               />
-            </a>
+            </div>
             <div class="flex flex-1 flex-col border-t border-border-subtle p-4">
               <p class="text-[11px] font-bold uppercase tracking-wider text-ccg-green-800">
                 {item.categoria}

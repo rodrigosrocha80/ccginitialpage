@@ -27,11 +27,29 @@ const uploadMode = isVercelBlobConfigured()
 
 const blobAccess = getBlobAccessMode();
 const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+
+const sharedVagaParam = Astro.url.searchParams.get('vaga')?.trim() || '';
+const sharedVaga = sharedVagaParam
+  ? initialVagas.find((v) => v.slug === sharedVagaParam || v.id === sharedVagaParam)
+  : undefined;
+
+const pageTitle = sharedVaga
+  ? `Vaga: ${sharedVaga.titulo} (${sharedVaga.localidade}) | CCG Locações`
+  : 'Trabalhe Conosco e Vagas Abertas | CCG Construções e Locações';
+
+const pageDescription = sharedVaga
+  ? `${sharedVaga.area} • ${sharedVaga.tipoContrato} • ${sharedVaga.modalidade}. ${sharedVaga.resumo}`
+  : 'Confira as vagas abertas na CCG Construções e Locações em São Luís/MA e frentes de obra pelo Brasil. Cadastre-se e envie seu currículo (até 10 MB).';
+
+const pageOgUrl = sharedVaga
+  ? `/trabalhe-conosco?vaga=${encodeURIComponent(sharedVaga.slug)}`
+  : undefined;
 ---
 
 <BaseLayout
-  title="Trabalhe Conosco e Vagas Abertas | CCG Construções e Locações"
-  description="Confira as vagas abertas na CCG Construções e Locações em São Luís/MA e frentes de obra pelo Brasil. Cadastre-se e envie seu currículo (até 10 MB)."
+  title={pageTitle}
+  description={pageDescription}
+  ogUrl={pageOgUrl}
   breadcrumbs={[{ label: 'Trabalhe Conosco' }]}
 >
   <PageHero

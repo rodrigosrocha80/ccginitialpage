@@ -16,6 +16,7 @@ interface Props {
   title: string;
   description: string;
   canonicalPath?: string;
+  ogUrl?: string;
   ogImage?: string;
   breadcrumbs?: { label: string; href?: string }[];
   extraSchema?: Record<string, unknown>[];
@@ -26,6 +27,7 @@ const {
   title,
   description,
   canonicalPath = Astro.url.pathname,
+  ogUrl,
   ogImage,
   breadcrumbs,
   extraSchema = [],
@@ -33,6 +35,7 @@ const {
 } = Astro.props;
 
 const canonicalUrl = new URL(canonicalPath, SITE.domain).toString();
+const resolvedOgUrl = ogUrl ? new URL(ogUrl, SITE.domain).toString() : canonicalUrl;
 const defaultOgImg = await getImage({ src: heroDefault, width: 1200, format: 'jpeg', quality: 80 });
 const ogImageUrl = ogImage
   ? new URL(ogImage, SITE.domain).toString()
@@ -183,7 +186,7 @@ const schemaOrg = {
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:url" content={resolvedOgUrl} />
     <meta property="og:site_name" content={SITE.brandShort} />
     <meta property="og:image" content={ogImageUrl} />
 

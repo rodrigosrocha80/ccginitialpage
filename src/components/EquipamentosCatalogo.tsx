@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { MotionConfig, motion, AnimatePresence } from 'motion/react';
+import { ShareBadge } from '@/components/ShareBadge';
 import type { EquipamentoView } from '@/lib/equipamentosView';
 import { getCategoryByName } from '@/lib/seo';
+import { buildEquipmentShareData } from '@/lib/share';
 import { buildWhatsAppUrl } from '@/lib/site';
 
 interface EquipamentosCatalogoProps {
@@ -186,23 +188,37 @@ export function EquipamentosCatalogo({ items, mode = 'home' }: EquipamentosCatal
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.98 }}
                     transition={{ duration: 0.2 }}
-                    className="group flex flex-col overflow-hidden rounded-2xl border border-border-subtle bg-surface-card shadow-xs transition-shadow hover:shadow-md"
+                    className="group relative flex flex-col rounded-2xl border border-border-subtle bg-surface-card shadow-xs transition-shadow hover:shadow-md has-[[aria-expanded=true]]:z-30"
                   >
-                    <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-white p-4">
-                      <span className="absolute left-3 top-3 rounded-md bg-ccg-green-50 px-2.5 py-1 text-xs font-semibold text-ccg-green-900 ring-1 ring-ccg-green-800/15">
-                        {item.categoria}
-                      </span>
-                      <img
-                        src={item.imageSrc}
-                        srcSet={item.imageSrcSet || undefined}
-                        sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 24vw"
-                        width={item.imageWidth}
-                        height={item.imageHeight}
-                        alt={item.nome}
-                        loading="lazy"
-                        decoding="async"
-                        className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
-                      />
+                    <div className="relative aspect-[4/3] rounded-t-2xl bg-white">
+                      <a
+                        href={`/equipamentos/${item.id}`}
+                        aria-label={`Ver descrição e ficha técnica de ${item.nome}`}
+                        className="flex h-full w-full items-center justify-center overflow-hidden rounded-t-2xl px-4 pb-4 pt-11"
+                      >
+                        <img
+                          src={item.imageSrc}
+                          srcSet={item.imageSrcSet || undefined}
+                          sizes="(max-width: 640px) 92vw, (max-width: 1024px) 45vw, 24vw"
+                          width={item.imageWidth}
+                          height={item.imageHeight}
+                          alt={item.nome}
+                          loading="lazy"
+                          decoding="async"
+                          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                        />
+                      </a>
+                      <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate rounded-md bg-ccg-green-50/95 px-2.5 py-1 text-xs font-semibold text-ccg-green-900 ring-1 ring-ccg-green-800/15">
+                          {item.categoria}
+                        </span>
+                        <ShareBadge
+                          {...buildEquipmentShareData(item)}
+                          variant="overlay"
+                          ariaLabel={`Compartilhar ${item.nome}`}
+                          className="pointer-events-auto shrink-0"
+                        />
+                      </div>
                     </div>
 
                     <div className="flex flex-1 flex-col border-t border-border-subtle p-5">
