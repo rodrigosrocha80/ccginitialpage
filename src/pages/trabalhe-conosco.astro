@@ -2,23 +2,60 @@
 import { Image } from 'astro:assets';
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
+import { VagasPortal } from '@/components/VagasPortal';
 import { SITE } from '@/lib/site';
+import { listPublicVagas } from '@/lib/careersDb';
+import { getBlobAccessMode, isVercelBlobConfigured } from '@/lib/resumeStorage';
+import { isProdEnvironment } from '@/lib/adminAuth';
+import type { Vaga } from '@/lib/careersSchema';
 import equipeImg from '@/assets/hero/equipe-campo.jpg';
+
+export const prerender = false;
+
+let initialVagas: Vaga[] = [];
+try {
+  initialVagas = await listPublicVagas();
+} catch (err) {
+  console.error('[trabalhe-conosco] Erro ao carregar vagas no SSR:', err);
+}
+
+const uploadMode = isVercelBlobConfigured()
+  ? 'vercel_blob'
+  : isProdEnvironment()
+    ? 'unconfigured'
+    : 'local';
+
+const blobAccess = getBlobAccessMode();
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
 ---
 
 <BaseLayout
-  title="Trabalhe Conosco | CCG Construções e Locações"
-  description="Faça parte da equipe CCG em São Luís/MA e frentes de obra pelo Brasil. Envie seu currículo para curriculos@ccglocacao.com.br."
+  title="Trabalhe Conosco e Vagas Abertas | CCG Construções e Locações"
+  description="Confira as vagas abertas na CCG Construções e Locações em São Luís/MA e frentes de obra pelo Brasil. Cadastre-se e envie seu currículo (até 10 MB)."
   breadcrumbs={[{ label: 'Trabalhe Conosco' }]}
 >
   <PageHero
     eyebrow="Carreiras na CCG"
-    title="Venha fazer parte da nossa equipe de campo e engenharia"
-    description="A CCG Construções acredita que o sucesso dos negócios é resultado da dedicação de cada colaborador."
+    title="Vagas abertas e captação de currículos"
+    description="A CCG Construções acredita que o sucesso dos negócios é resultado da dedicação de cada colaborador. Confira nossas oportunidades ou cadastre seu currículo no Banco de Talentos."
     breadcrumbs={[{ label: 'Trabalhe Conosco' }]}
   />
 
+  <!-- Portal de Vagas + Formulário de Candidatura -->
   <section class="py-12 sm:py-16">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <VagasPortal
+        client:load
+        initialVagas={initialVagas}
+        uploadMode={uploadMode}
+        blobAccess={blobAccess}
+        turnstileSiteKey={turnstileSiteKey}
+      />
+    </div>
+  </section>
+
+  <!-- Bloco institucional + canal alternativo -->
+  <section class="border-t border-border-subtle bg-white py-12 sm:py-16">
     <div class="mx-auto grid max-w-7xl grid-cols-1 items-center gap-10 px-4 sm:px-6 lg:grid-cols-12 lg:px-8">
       <div class="space-y-5 lg:col-span-7">
         <h2 class="font-display text-3xl font-extrabold text-ink-primary">
@@ -27,22 +64,22 @@ import equipeImg from '@/assets/hero/equipe-campo.jpg';
         <p class="text-base leading-relaxed text-ink-secondary">
           Se você é operador de máquinas pesadas, motorista de caminhão, mecânico de linha amarela,
           técnico em segurança do trabalho, engenheiro ou profissional administrativo, a CCG está de
-          portas abertas para receber seu currículo.
+          portas abertas para receber o seu cadastro.
         </p>
 
         <div class="rounded-2xl border border-ccg-green-800/25 bg-ccg-green-50 p-6">
           <p class="text-xs font-bold uppercase tracking-wider text-ccg-green-900">
-            Como se candidatar
+            Canal alternativo de RH
           </p>
-          <p class="mt-2 text-base text-ink-primary">
-            Envie seu currículo para o e-mail oficial informando o{' '}
-            <strong>cargo pretendido no assunto</strong>:
+          <p class="mt-2 text-sm text-ink-primary">
+            Preferindo, você também pode falar com nosso setor de Recursos Humanos pelo e-mail
+            oficial informando o <strong>cargo pretendido no assunto</strong>:
           </p>
           <a
             href={`mailto:${SITE.emailCurriculos}?subject=Curr%C3%ADculo%20-%20Cargo%20Pretendido`}
-            class="mt-4 inline-flex min-h-[48px] items-center rounded-xl bg-ccg-green-800 px-6 py-3 font-display text-base font-bold text-white hover:bg-ccg-green-900"
+            class="mt-4 inline-flex min-h-[44px] items-center rounded-xl border border-ccg-green-800 bg-white px-5 py-2.5 font-display text-sm font-bold text-ccg-green-900 hover:bg-ccg-green-100"
           >
-            Enviar currículo: {SITE.emailCurriculos}
+            {SITE.emailCurriculos}
           </a>
         </div>
       </div>

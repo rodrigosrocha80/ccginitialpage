@@ -1,0 +1,25 @@
+---
+import BaseLayout from '@/layouts/BaseLayout.astro';
+import PageHero from '@/components/PageHero.astro';
+import { AdminVagasManager } from '@/components/AdminVagasManager';
+
+export const prerender = false;
+---
+
+<BaseLayout
+  title="Gestor de Vagas e Currículos | Área RH — CCG Locações"
+  description="Painel administrativo para cadastro de vagas e gestão de candidaturas e currículos da CCG Construções e Locações."
+  noindex={true}
+>
+  <PageHero
+    eyebrow="Área Restrita • Recursos Humanos"
+    title="Gestor de Vagas e Currículos"
+    description="Cadastre novas vagas, acompanhe candidatos e faça o download dos currículos enviados pela página Trabalhe Conosco."
+  />
+
+  <section class="py-10 sm:py-14">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <AdminVagasManager client:load />
+    </div>
+  </section>
+</BaseLayout>
