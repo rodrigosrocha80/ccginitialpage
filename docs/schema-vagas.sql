@@ -1,11 +1,9 @@
 -- Schema para o Gestor de Vagas e Captação de Currículos (CCG Locações)
--- Compatível com Neon Postgres (Vercel Marketplace).
+-- Compatível com PostgreSQL padrão (KingHost, VPS, Neon, etc.), sem exigir extensões de superusuário.
 -- Observação: a aplicação também executa CREATE TABLE IF NOT EXISTS automaticamente na primeira chamada.
 
-CREATE EXTENSION IF NOT EXISTS pgcrypto;
-
 CREATE TABLE IF NOT EXISTS vagas (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY,
   slug TEXT UNIQUE NOT NULL,
   titulo TEXT NOT NULL,
   area TEXT NOT NULL,
@@ -26,7 +24,7 @@ CREATE TABLE IF NOT EXISTS vagas (
 );
 
 CREATE TABLE IF NOT EXISTS candidaturas (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id UUID PRIMARY KEY,
   vaga_id UUID REFERENCES vagas(id) ON DELETE SET NULL,
   vaga_titulo TEXT NOT NULL,
   nome TEXT NOT NULL,

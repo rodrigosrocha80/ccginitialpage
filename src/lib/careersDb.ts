@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+import { Pool, type PoolConfig } from 'pg';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
@@ -29,38 +29,84 @@ function getDatabaseUrl(): string | undefined {
   );
 }
 
+function hasDiscretePgConfig(): boolean {
+  return Boolean(getEnv('PGHOST')?.trim() && getEnv('PGUSER')?.trim());
+}
+
 export function isPostgresConfigured(): boolean {
-  return Boolean(getDatabaseUrl());
+  return Boolean(getDatabaseUrl() || hasDiscretePgConfig());
 }
 
 export function isUsingLocalFallback(): boolean {
   return !isPostgresConfigured() && !isProdEnvironment();
 }
 
-type NeonSql = ReturnType<typeof neon>;
-let _sql: NeonSql | null = null;
-let _schemaReady = false;
-
-function getSql(): NeonSql {
-  const url = getDatabaseUrl();
-  if (!url) {
-    throw new Error(
-      'Banco de dados não configurado. Conecte o Neon Postgres na Vercel (DATABASE_URL).'
-    );
+function resolveSslOption(connectionString?: string): PoolConfig['ssl'] {
+  const pgSsl = getEnv('PGSSL')?.trim().toLowerCase();
+  if (pgSsl === 'true' || pgSsl === '1' || pgSsl === 'require') {
+    return { rejectUnauthorized: false };
   }
-  if (!_sql) {
-    _sql = neon(url);
+  if (pgSsl === 'false' || pgSsl === '0' || pgSsl === 'disable') {
+    return false;
   }
-  return _sql;
+  if (connectionString) {
+    if (
+      connectionString.includes('sslmode=require') ||
+      connectionString.includes('neon.tech') ||
+      connectionString.includes('supabase.co')
+    ) {
+      return { rejectUnauthorized: false };
+    }
+  }
+  return false;
 }
 
-async function ensurePostgresSchema(): Promise<NeonSql> {
-  const sql = getSql();
-  if (_schemaReady) return sql;
+let _pool: Pool | null = null;
+let _schemaReady = false;
 
-  await sql`
+function getPool(): Pool {
+  if (_pool) return _pool;
+
+  const connectionString = getDatabaseUrl();
+  if (connectionString) {
+    _pool = new Pool({
+      connectionString,
+      ssl: resolveSslOption(connectionString),
+      max: 5,
+      idleTimeoutMillis: 20_000,
+      connectionTimeoutMillis: 10_000,
+    });
+    return _pool;
+  }
+
+  if (hasDiscretePgConfig()) {
+    const user = getEnv('PGUSER')!.trim();
+    _pool = new Pool({
+      host: getEnv('PGHOST')!.trim(),
+      port: Number(getEnv('PGPORT') || 5432),
+      user,
+      password: getEnv('PGPASSWORD') || '',
+      database: getEnv('PGDATABASE')?.trim() || user,
+      ssl: resolveSslOption(),
+      max: 5,
+      idleTimeoutMillis: 20_000,
+      connectionTimeoutMillis: 10_000,
+    });
+    return _pool;
+  }
+
+  throw new Error(
+    'Banco de dados PostgreSQL não configurado. Defina DATABASE_URL ou PGHOST/PGUSER/PGPASSWORD.'
+  );
+}
+
+async function ensurePostgresSchema(): Promise<Pool> {
+  const pool = getPool();
+  if (_schemaReady) return pool;
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS vagas (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      id UUID PRIMARY KEY,
       slug TEXT UNIQUE NOT NULL,
       titulo TEXT NOT NULL,
       area TEXT NOT NULL,
@@ -79,11 +125,11 @@ async function ensurePostgresSchema(): Promise<NeonSql> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
-  `;
+  `);
 
-  await sql`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS candidaturas (
-      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      id UUID PRIMARY KEY,
       vaga_id UUID REFERENCES vagas(id) ON DELETE SET NULL,
       vaga_titulo TEXT NOT NULL,
       nome TEXT NOT NULL,
@@ -108,15 +154,17 @@ async function ensurePostgresSchema(): Promise<NeonSql> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
-  `;
+  `);
 
-  await sql`CREATE INDEX IF NOT EXISTS idx_vagas_status ON vagas(status)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_candidaturas_vaga_id ON candidaturas(vaga_id)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_candidaturas_status ON candidaturas(status)`;
-  await sql`CREATE INDEX IF NOT EXISTS idx_candidaturas_created_at ON candidaturas(created_at DESC)`;
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_vagas_status ON vagas(status)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_candidaturas_vaga_id ON candidaturas(vaga_id)`);
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_candidaturas_status ON candidaturas(status)`);
+  await pool.query(
+    `CREATE INDEX IF NOT EXISTS idx_candidaturas_created_at ON candidaturas(created_at DESC)`
+  );
 
   _schemaReady = true;
-  return sql;
+  return pool;
 }
 
 // ---------- Fallback local JSON (apenas desenvolvimento sem DATABASE_URL) ----------
@@ -216,13 +264,13 @@ export async function listPublicVagas(): Promise<Vaga[]> {
       .sort((a, b) => Number(b.destaque) - Number(a.destaque) || b.createdAt.localeCompare(a.createdAt));
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(`
     SELECT * FROM vagas
     WHERE status = 'aberta'
     ORDER BY destaque DESC, created_at DESC
-  `) as Record<string, unknown>[];
-  return rows.map(mapVagaRow);
+  `);
+  return rows.map((r) => mapVagaRow(r as Record<string, unknown>));
 }
 
 export async function listAllVagasWithCounts(): Promise<Vaga[]> {
@@ -236,8 +284,8 @@ export async function listAllVagasWithCounts(): Promise<Vaga[]> {
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(`
     SELECT
       v.*,
       COUNT(c.id)::int AS total_candidaturas
@@ -245,8 +293,8 @@ export async function listAllVagasWithCounts(): Promise<Vaga[]> {
     LEFT JOIN candidaturas c ON c.vaga_id = v.id
     GROUP BY v.id
     ORDER BY v.created_at DESC
-  `) as Record<string, unknown>[];
-  return rows.map(mapVagaRow);
+  `);
+  return rows.map((r) => mapVagaRow(r as Record<string, unknown>));
 }
 
 export async function getVagaById(id: string): Promise<Vaga | null> {
@@ -255,23 +303,21 @@ export async function getVagaById(id: string): Promise<Vaga | null> {
     return store.vagas.find((v) => v.id === id) || null;
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`SELECT * FROM vagas WHERE id = ${id}::uuid LIMIT 1`) as Record<
-    string,
-    unknown
-  >[];
-  return rows[0] ? mapVagaRow(rows[0]) : null;
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(`SELECT * FROM vagas WHERE id = $1::uuid LIMIT 1`, [id]);
+  return rows[0] ? mapVagaRow(rows[0] as Record<string, unknown>) : null;
 }
 
 export async function createVaga(input: VagaInput): Promise<Vaga> {
+  const id = randomUUID();
   const baseSlug = slugify(input.slug || input.titulo) || `vaga-${Date.now()}`;
-  const uniqueSlug = `${baseSlug}-${randomUUID().slice(0, 6)}`;
+  const uniqueSlug = `${baseSlug}-${id.slice(0, 6)}`;
 
   if (isUsingLocalFallback()) {
     const store = await readLocalStore();
     const now = new Date().toISOString();
     const vaga: Vaga = {
-      id: randomUUID(),
+      id,
       slug: uniqueSlug,
       titulo: input.titulo,
       area: input.area,
@@ -296,23 +342,41 @@ export async function createVaga(input: VagaInput): Promise<Vaga> {
     return vaga;
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`
-    INSERT INTO vagas (
-      slug, titulo, area, localidade, modalidade, tipo_contrato,
-      faixa_salarial, quantidade, resumo, descricao, requisitos,
-      diferenciais, beneficios, status, destaque
-    )
-    VALUES (
-      ${uniqueSlug}, ${input.titulo}, ${input.area}, ${input.localidade},
-      ${input.modalidade}, ${input.tipoContrato}, ${input.faixaSalarial || null},
-      ${input.quantidade}, ${input.resumo}, ${input.descricao}, ${input.requisitos},
-      ${input.diferenciais || null}, ${input.beneficios || null},
-      ${input.status}, ${input.destaque}
-    )
-    RETURNING *
-  `) as Record<string, unknown>[];
-  return { ...mapVagaRow(rows[0]), totalCandidaturas: 0 };
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(
+    `
+      INSERT INTO vagas (
+        id, slug, titulo, area, localidade, modalidade, tipo_contrato,
+        faixa_salarial, quantidade, resumo, descricao, requisitos,
+        diferenciais, beneficios, status, destaque
+      )
+      VALUES (
+        $1::uuid, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12,
+        $13, $14, $15, $16
+      )
+      RETURNING *
+    `,
+    [
+      id,
+      uniqueSlug,
+      input.titulo,
+      input.area,
+      input.localidade,
+      input.modalidade,
+      input.tipoContrato,
+      input.faixaSalarial || null,
+      input.quantidade,
+      input.resumo,
+      input.descricao,
+      input.requisitos,
+      input.diferenciais || null,
+      input.beneficios || null,
+      input.status,
+      input.destaque,
+    ]
+  );
+  return { ...mapVagaRow(rows[0] as Record<string, unknown>), totalCandidaturas: 0 };
 }
 
 export async function updateVaga(id: string, input: Partial<VagaInput>): Promise<Vaga | null> {
@@ -357,29 +421,48 @@ export async function updateVaga(id: string, input: Partial<VagaInput>): Promise
     };
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`
-    UPDATE vagas
-    SET
-      titulo = ${merged.titulo},
-      area = ${merged.area},
-      localidade = ${merged.localidade},
-      modalidade = ${merged.modalidade},
-      tipo_contrato = ${merged.tipoContrato},
-      faixa_salarial = ${merged.faixaSalarial || null},
-      quantidade = ${merged.quantidade},
-      resumo = ${merged.resumo},
-      descricao = ${merged.descricao},
-      requisitos = ${merged.requisitos},
-      diferenciais = ${merged.diferenciais || null},
-      beneficios = ${merged.beneficios || null},
-      status = ${merged.status},
-      destaque = ${merged.destaque},
-      updated_at = NOW()
-    WHERE id = ${id}::uuid
-    RETURNING *
-  `) as Record<string, unknown>[];
-  return rows[0] ? mapVagaRow(rows[0]) : null;
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(
+    `
+      UPDATE vagas
+      SET
+        titulo = $1,
+        area = $2,
+        localidade = $3,
+        modalidade = $4,
+        tipo_contrato = $5,
+        faixa_salarial = $6,
+        quantidade = $7,
+        resumo = $8,
+        descricao = $9,
+        requisitos = $10,
+        diferenciais = $11,
+        beneficios = $12,
+        status = $13,
+        destaque = $14,
+        updated_at = NOW()
+      WHERE id = $15::uuid
+      RETURNING *
+    `,
+    [
+      merged.titulo,
+      merged.area,
+      merged.localidade,
+      merged.modalidade,
+      merged.tipoContrato,
+      merged.faixaSalarial || null,
+      merged.quantidade,
+      merged.resumo,
+      merged.descricao,
+      merged.requisitos,
+      merged.diferenciais || null,
+      merged.beneficios || null,
+      merged.status,
+      merged.destaque,
+      id,
+    ]
+  );
+  return rows[0] ? mapVagaRow(rows[0] as Record<string, unknown>) : null;
 }
 
 export async function deleteVaga(id: string): Promise<boolean> {
@@ -395,11 +478,8 @@ export async function deleteVaga(id: string): Promise<boolean> {
     return true;
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`DELETE FROM vagas WHERE id = ${id}::uuid RETURNING id`) as Record<
-    string,
-    unknown
-  >[];
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(`DELETE FROM vagas WHERE id = $1::uuid RETURNING id`, [id]);
   return rows.length > 0;
 }
 
@@ -409,13 +489,14 @@ export async function createCandidatura(
   input: CandidaturaInput,
   resolvedVagaTitulo: string
 ): Promise<Candidatura> {
+  const id = randomUUID();
   const vagaId = input.vagaId || null;
 
   if (isUsingLocalFallback()) {
     const store = await readLocalStore();
     const now = new Date().toISOString();
     const item: Candidatura = {
-      id: randomUUID(),
+      id,
       vagaId,
       vagaTitulo: resolvedVagaTitulo,
       nome: input.nome,
@@ -445,26 +526,47 @@ export async function createCandidatura(
     return item;
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`
-    INSERT INTO candidaturas (
-      vaga_id, vaga_titulo, nome, email, telefone, cidade_uf,
-      cpf, cnh, experiencia_resumo, pretensao_salarial, linkedin_url, mensagem,
-      curriculo_url, curriculo_pathname, curriculo_nome, curriculo_tipo,
-      curriculo_tamanho, curriculo_storage, consentimento_lgpd
-    )
-    VALUES (
-      ${vagaId}::uuid, ${resolvedVagaTitulo}, ${input.nome}, ${input.email},
-      ${input.telefone}, ${input.cidadeUf}, ${input.cpf || null}, ${input.cnh || null},
-      ${input.experienciaResumo}, ${input.pretensaoSalarial || null},
-      ${input.linkedinUrl || null}, ${input.mensagem || null},
-      ${input.curriculoUrl}, ${input.curriculoPathname}, ${input.curriculoNome},
-      ${input.curriculoTipo}, ${input.curriculoTamanho}, ${input.curriculoStorage},
-      ${input.consentimentoLgpd}
-    )
-    RETURNING *
-  `) as Record<string, unknown>[];
-  return mapCandidaturaRow(rows[0]);
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(
+    `
+      INSERT INTO candidaturas (
+        id, vaga_id, vaga_titulo, nome, email, telefone, cidade_uf,
+        cpf, cnh, experiencia_resumo, pretensao_salarial, linkedin_url, mensagem,
+        curriculo_url, curriculo_pathname, curriculo_nome, curriculo_tipo,
+        curriculo_tamanho, curriculo_storage, consentimento_lgpd
+      )
+      VALUES (
+        $1::uuid, $2::uuid, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12, $13,
+        $14, $15, $16, $17,
+        $18, $19, $20
+      )
+      RETURNING *
+    `,
+    [
+      id,
+      vagaId,
+      resolvedVagaTitulo,
+      input.nome,
+      input.email,
+      input.telefone,
+      input.cidadeUf,
+      input.cpf || null,
+      input.cnh || null,
+      input.experienciaResumo,
+      input.pretensaoSalarial || null,
+      input.linkedinUrl || null,
+      input.mensagem || null,
+      input.curriculoUrl,
+      input.curriculoPathname,
+      input.curriculoNome,
+      input.curriculoTipo,
+      input.curriculoTamanho,
+      input.curriculoStorage,
+      input.consentimentoLgpd,
+    ]
+  );
+  return mapCandidaturaRow(rows[0] as Record<string, unknown>);
 }
 
 export async function listCandidaturas(filters?: {
@@ -497,14 +599,14 @@ export async function listCandidaturas(filters?: {
     return list.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(`
     SELECT * FROM candidaturas
     ORDER BY created_at DESC
     LIMIT 500
-  `) as Record<string, unknown>[];
+  `);
 
-  let list = rows.map(mapCandidaturaRow);
+  let list = rows.map((r) => mapCandidaturaRow(r as Record<string, unknown>));
   if (filters?.vagaId === '__banco__') {
     list = list.filter((c) => !c.vagaId);
   } else if (filters?.vagaId) {
@@ -533,12 +635,9 @@ export async function getCandidaturaById(id: string): Promise<Candidatura | null
     return store.candidaturas.find((c) => c.id === id) || null;
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`SELECT * FROM candidaturas WHERE id = ${id}::uuid LIMIT 1`) as Record<
-    string,
-    unknown
-  >[];
-  return rows[0] ? mapCandidaturaRow(rows[0]) : null;
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(`SELECT * FROM candidaturas WHERE id = $1::uuid LIMIT 1`, [id]);
+  return rows[0] ? mapCandidaturaRow(rows[0] as Record<string, unknown>) : null;
 }
 
 export async function updateCandidatura(
@@ -566,14 +665,17 @@ export async function updateCandidatura(
     return updated;
   }
 
-  const sql = await ensurePostgresSchema();
-  const rows = (await sql`
-    UPDATE candidaturas
-    SET status = ${status}, notas_rh = ${notasRh || null}, updated_at = NOW()
-    WHERE id = ${id}::uuid
-    RETURNING *
-  `) as Record<string, unknown>[];
-  return rows[0] ? mapCandidaturaRow(rows[0]) : null;
+  const pool = await ensurePostgresSchema();
+  const { rows } = await pool.query(
+    `
+      UPDATE candidaturas
+      SET status = $1, notas_rh = $2, updated_at = NOW()
+      WHERE id = $3::uuid
+      RETURNING *
+    `,
+    [status, notasRh || null, id]
+  );
+  return rows[0] ? mapCandidaturaRow(rows[0] as Record<string, unknown>) : null;
 }
 
 export async function deleteCandidatura(id: string): Promise<Candidatura | null> {
@@ -587,7 +689,7 @@ export async function deleteCandidatura(id: string): Promise<Candidatura | null>
     return existing;
   }
 
-  const sql = await ensurePostgresSchema();
-  await sql`DELETE FROM candidaturas WHERE id = ${id}::uuid`;
+  const pool = await ensurePostgresSchema();
+  await pool.query(`DELETE FROM candidaturas WHERE id = $1::uuid`, [id]);
   return existing;
 }
