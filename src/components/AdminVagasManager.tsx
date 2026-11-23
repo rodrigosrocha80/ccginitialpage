@@ -680,6 +680,7 @@ export function AdminVagasManager() {
                     <ShareBadge
                       {...buildVagaShareData(vaga)}
                       variant="admin"
+                      align="left"
                       disabled={vaga.status !== 'aberta'}
                       disabledTitle="Altere o status da vaga para Aberta para compartilhar o link público"
                       ariaLabel={`Compartilhar vaga ${vaga.titulo}`}
