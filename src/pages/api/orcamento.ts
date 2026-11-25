@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { Resend } from 'resend';
+import { escapeHtml, isMailerConfigured, sendMail } from '@/lib/mailer';
 import { quoteSchema } from '@/lib/quoteSchema';
 import { SITE } from '@/lib/site';
 
@@ -33,15 +33,6 @@ async function verifyTurnstile(token: string | undefined, secret: string, ip: st
   if (!res.ok) return false;
   const data = (await res.json()) as { success?: boolean };
   return Boolean(data.success);
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
@@ -109,45 +100,53 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     }
   }
 
-  const resendKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
-  const fromEmail =
-    import.meta.env.QUOTE_FROM_EMAIL ||
-    process.env.QUOTE_FROM_EMAIL ||
-    'Site CCG Locações <noreply@ccglocacao.com.br>';
   const toEmail =
     import.meta.env.QUOTE_TO_EMAIL ||
     process.env.QUOTE_TO_EMAIL ||
     SITE.emailContratos;
-
   const subjectEquip = data.equipamentoInteresse
     ? ` — ${data.equipamentoInteresse}`
     : '';
 
-  if (resendKey && !resendKey.startsWith('re_xxxxx')) {
-    const resend = new Resend(resendKey);
-    const { error } = await resend.emails.send({
-      from: fromEmail,
-      to: [toEmail],
-      replyTo: data.email,
-      subject: `[Orçamento Site CCG] ${data.nome}${subjectEquip}`,
-      html: `
-        <div style="font-family: Arial, sans-serif; color: #111814; max-width: 600px;">
-          <h2 style="color: #105e2d; margin-bottom: 12px;">Nova solicitação de orçamento — CCG Locações</h2>
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Nome / Responsável:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.nome)}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Telefone / WhatsApp:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.telefone)}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>E-mail:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.email)}</td></tr>
-            ${data.equipamentoInteresse ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Equipamento / Serviço:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.equipamentoInteresse)}</td></tr>` : ''}
-          </table>
-          <p style="margin-top: 16px;"><strong>Descrição da demanda:</strong></p>
-          <p style="white-space: pre-wrap; background: #f3faf5; padding: 12px; border-radius: 6px;">${escapeHtml(data.mensagem)}</p>
-          <p style="font-size: 12px; color: #5a675f; margin-top: 16px;">Consentimento LGPD confirmado pelo usuário.</p>
-        </div>
-      `,
-    });
+  if (isMailerConfigured()) {
+    try {
+      const textLines = [
+        'Nova solicitação de orçamento — CCG Locações',
+        `Nome / Responsável: ${data.nome}`,
+        `Telefone / WhatsApp: ${data.telefone}`,
+        `E-mail: ${data.email}`,
+        ...(data.equipamentoInteresse
+          ? [`Equipamento / Serviço: ${data.equipamentoInteresse}`]
+          : []),
+        '',
+        'Descrição da demanda:',
+        data.mensagem,
+        '',
+        'Consentimento LGPD confirmado pelo usuário.',
+      ];
 
-    if (error) {
-      console.error('[orcamento] Erro ao enviar via Resend:', error);
+      await sendMail({
+        to: toEmail,
+        replyTo: data.email,
+        subject: `[Orçamento Site CCG] ${data.nome}${subjectEquip}`,
+        text: textLines.join('\n'),
+        html: `
+          <div style="font-family: Arial, sans-serif; color: #111814; max-width: 600px;">
+            <h2 style="color: #105e2d; margin-bottom: 12px;">Nova solicitação de orçamento — CCG Locações</h2>
+            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Nome / Responsável:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.nome)}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Telefone / WhatsApp:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.telefone)}</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>E-mail:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.email)}</td></tr>
+              ${data.equipamentoInteresse ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Equipamento / Serviço:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.equipamentoInteresse)}</td></tr>` : ''}
+            </table>
+            <p style="margin-top: 16px;"><strong>Descrição da demanda:</strong></p>
+            <p style="white-space: pre-wrap; background: #f3faf5; padding: 12px; border-radius: 6px;">${escapeHtml(data.mensagem)}</p>
+            <p style="font-size: 12px; color: #5a675f; margin-top: 16px;">Consentimento LGPD confirmado pelo usuário.</p>
+          </div>
+        `,
+      });
+    } catch (err) {
+      console.error('[orcamento] Erro ao enviar via SMTP:', err);
       return new Response(
         JSON.stringify({
           ok: false,
@@ -157,8 +156,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
       );
     }
   } else {
-    // Modo desenvolvimento/staging sem RESEND_API_KEY configurado
-    console.info('[orcamento] Lead validado (configure RESEND_API_KEY para envio real):', {
+    console.info('[orcamento] Lead validado (configure SMTP_HOST, SMTP_USER e SMTP_PASS para envio real):', {
       nome: data.nome,
       telefone: data.telefone,
       email: data.email,

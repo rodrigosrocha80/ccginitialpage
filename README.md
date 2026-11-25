@@ -46,7 +46,7 @@ Novo site institucional de alta conversão para **CCG Construções e Terraplena
 │   │   ├── quoteSchema.ts             # Schema Zod 4 compartilhado client/server
 │   │   └── site.ts                    # Dados institucionais centralizados e helper WhatsApp
 │   ├── pages/
-│   │   ├── api/orcamento.ts           # Endpoint server-side (POST) com Resend + anti-spam
+│   │   ├── api/orcamento.ts           # Endpoint server-side (POST) com SMTP + anti-spam
 │   │   ├── clientes.astro
 │   │   ├── contato.astro
 │   │   ├── equipamentos.astro
@@ -88,14 +88,21 @@ npm run start   # Sobe o servidor Node standalone na porta 4321
 
 ---
 
-## Variáveis de Ambiente (`.env`)
+## Variáveis de Ambiente (`.env` / Vercel Environment Variables)
+
+Em produção na Vercel, cadastre as credenciais (especialmente `SMTP_PASS`) diretamente em **Settings → Environment Variables** como **Secret** — nunca versione senhas no Git.
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
 | `PUBLIC_SITE_URL` | Sim (prod) | URL canônica (`https://ccglocacao.com.br`) |
-| `RESEND_API_KEY` | Sim (prod) | Chave da API Resend para envio real dos e-mails de orçamento. Em dev, se omitida, o endpoint apenas registra o lead no console. |
-| `QUOTE_FROM_EMAIL` | Sim (prod) | Remetente autenticado no Resend (ex.: `Site CCG Locações <noreply@ccglocacao.com.br>`) |
-| `QUOTE_TO_EMAIL` | Não | Destino dos leads (padrão: `contratos@ccglocacao.com.br`) |
+| `SMTP_HOST` | Sim (prod) | Servidor SMTP (ex.: `smtp.kinghost.net`). Em dev, se omitido, os endpoints apenas registram o envio no console. |
+| `SMTP_PORT` | Não | Porta SMTP (`587` STARTTLS por padrão; use `465` para SSL direto) |
+| `SMTP_SECURE` | Não | `true` para SSL direto (porta `465`) ou `false` para STARTTLS (porta `587`, padrão) |
+| `SMTP_USER` | Sim (prod) | Usuário/e-mail autenticado no SMTP (ex.: `naoresponder@ccglocacao.com.br`) |
+| `SMTP_PASS` | Sim (prod) | Senha da conta SMTP (armazenar como Secret na Vercel) |
+| `QUOTE_FROM_EMAIL` | Não | Remetente exibido nos e-mails (ex.: `Site CCG Locações <naoresponder@ccglocacao.com.br>`; padrão usa `SMTP_USER`) |
+| `QUOTE_TO_EMAIL` | Não | Destino dos orçamentos (padrão: `contratos@ccglocacao.com.br`) |
+| `RH_TO_EMAIL` | Não | Destino das candidaturas (padrão: `curriculos@ccglocacao.com.br`) |
 | `PUBLIC_TURNSTILE_SITE_KEY` | Opcional | Chave pública Cloudflare Turnstile no formulário |
 | `TURNSTILE_SECRET_KEY` | Opcional | Chave secreta Cloudflare Turnstile validada em `/api/orcamento` |
 | `PUBLIC_GA4_ID` | Opcional | ID Google Analytics 4 (`G-XXXXXXXXXX`), carregado apenas após aceite LGPD |

@@ -20,8 +20,6 @@ services:
         value: "Site CCG Locações <noreply@ccglocacao.com.br>"
       - key: QUOTE_TO_EMAIL
         value: contratos@ccglocacao.com.br
-      - key: RESEND_API_KEY
-        sync: false
       - key: PUBLIC_TURNSTILE_SITE_KEY
         sync: false
       - key: TURNSTILE_SECRET_KEY

@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { Resend } from 'resend';
 import {
   candidaturaInputSchema,
   formatBytes,
   isAllowedResumeFile,
 } from '@/lib/careersSchema';
 import { createCandidatura, getVagaById } from '@/lib/careersDb';
+import { escapeHtml, isMailerConfigured, sendMail } from '@/lib/mailer';
 import { SITE } from '@/lib/site';
 
 export const prerender = false;
@@ -40,15 +40,6 @@ async function verifyTurnstile(
   if (!res.ok) return false;
   const data = (await res.json()) as { success?: boolean };
   return Boolean(data.success);
-}
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 export const POST: APIRoute = async ({ request, clientAddress }) => {
@@ -166,18 +157,13 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
     );
   }
 
-  // Envio de notificação por e-mail via Resend (não bloqueia a confirmação se falhar)
-  const resendKey = import.meta.env.RESEND_API_KEY || process.env.RESEND_API_KEY;
-  const fromEmail =
-    import.meta.env.QUOTE_FROM_EMAIL ||
-    process.env.QUOTE_FROM_EMAIL ||
-    'Site CCG Locações <noreply@ccglocacao.com.br>';
+  const protocolo = saved.id.slice(0, 8).toUpperCase();
   const toEmail =
     import.meta.env.RH_TO_EMAIL ||
     process.env.RH_TO_EMAIL ||
     SITE.emailCurriculos;
 
-  if (resendKey && !resendKey.startsWith('re_xxxxx')) {
+  if (isMailerConfigured()) {
     try {
       const siteUrl = (
         import.meta.env.PUBLIC_SITE_URL ||
@@ -185,12 +171,30 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         SITE.domain
       ).replace(/\/$/, '');
       const adminUrl = `${siteUrl}/admin/vagas`;
-      const resend = new Resend(resendKey);
-      await resend.emails.send({
-        from: fromEmail,
-        to: [toEmail],
+      const textLines = [
+        'Nova candidatura recebida — CCG Locações',
+        `Vaga: ${resolvedVagaTitulo}`,
+        `Candidato: ${data.nome}`,
+        `E-mail: ${data.email}`,
+        `Telefone / WhatsApp: ${data.telefone}`,
+        `Cidade / UF: ${data.cidadeUf}`,
+        ...(data.cnh ? [`CNH: ${data.cnh}`] : []),
+        ...(data.pretensaoSalarial ? [`Pretensão salarial: ${data.pretensaoSalarial}`] : []),
+        `Currículo anexado: ${data.curriculoNome} (${formatBytes(data.curriculoTamanho)})`,
+        '',
+        'Resumo de experiência:',
+        data.experienciaResumo,
+        ...(data.mensagem ? ['', 'Observações do candidato:', data.mensagem] : []),
+        '',
+        `Abrir Gestor de Vagas: ${adminUrl}`,
+        `Protocolo: ${protocolo} • Consentimento LGPD confirmado.`,
+      ];
+
+      await sendMail({
+        to: toEmail,
         replyTo: data.email,
         subject: `[Currículo CCG] ${resolvedVagaTitulo} — ${data.nome}`,
+        text: textLines.join('\n'),
         html: `
           <div style="font-family: Arial, sans-serif; color: #111814; max-width: 640px;">
             <h2 style="color: #105e2d; margin-bottom: 12px;">Nova candidatura recebida — CCG Locações</h2>
@@ -214,16 +218,16 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
                 Abrir Gestor de Vagas e Baixar Currículo
               </a>
             </p>
-            <p style="font-size: 12px; color: #5a675f; margin-top: 16px;">Protocolo: ${escapeHtml(saved.id.slice(0, 8).toUpperCase())} • Consentimento LGPD confirmado.</p>
+            <p style="font-size: 12px; color: #5a675f; margin-top: 16px;">Protocolo: ${escapeHtml(protocolo)} • Consentimento LGPD confirmado.</p>
           </div>
         `,
       });
     } catch (emailErr) {
-      console.error('[candidaturas] Erro ao enviar notificação via Resend:', emailErr);
+      console.error('[candidaturas] Erro ao enviar notificação via SMTP:', emailErr);
     }
   } else {
-    console.info('[candidaturas] Nova candidatura registrada (configure RESEND_API_KEY para envio de e-mail):', {
-      protocolo: saved.id.slice(0, 8).toUpperCase(),
+    console.info('[candidaturas] Nova candidatura registrada (configure SMTP_HOST, SMTP_USER e SMTP_PASS para envio real):', {
+      protocolo,
       vaga: resolvedVagaTitulo,
       nome: data.nome,
       curriculo: data.curriculoNome,
