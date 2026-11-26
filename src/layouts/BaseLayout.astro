@@ -11,6 +11,7 @@ import heroDefault from '@/assets/hero/hero-obra-aerea.jpg';
 import logoCcg from '@/assets/brand/logo-ccg.png';
 import archivoLatinWoff2 from '@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url';
 import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import SpeedInsights from '@vercel/speed-insights/astro';
 
 interface Props {
   title: string;
@@ -211,5 +212,6 @@ const schemaOrg = {
     <Footer />
     <WhatsAppFloat />
     <CookieConsent ga4Id={ga4Id} clarityId={clarityId} />
+    <SpeedInsights />
   </body>
 </html>
