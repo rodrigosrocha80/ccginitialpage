@@ -170,12 +170,9 @@ import { SITE, buildWhatsAppUrl } from '@/lib/site';
         <a href="/privacidade" class="hover:text-white hover:underline">
           Política de Privacidade (LGPD)
         </a>
-        <a href="/admin/vagas" class="hover:text-white hover:underline">
-          Gestor de Vagas (RH)
-        </a>
         <button
+          id="ccg-open-cookie-btn"
           type="button"
-          onclick="window.dispatchEvent(new Event('ccg:open-cookie-consent'))"
           class="cursor-pointer hover:text-white hover:underline"
         >
           Gerenciar Cookies
@@ -184,3 +181,9 @@ import { SITE, buildWhatsAppUrl } from '@/lib/site';
     </div>
   </div>
 </footer>
+
+<script>
+  document.getElementById('ccg-open-cookie-btn')?.addEventListener('click', () => {
+    window.dispatchEvent(new Event('ccg:open-cookie-consent'));
+  });
+</script>

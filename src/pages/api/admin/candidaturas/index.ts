@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { requireAdmin } from '@/lib/adminAuth';
 import { listCandidaturas } from '@/lib/careersDb';
+import { jsonResponse } from '@/lib/security';
 
 export const prerender = false;
 
@@ -15,18 +16,13 @@ export const GET: APIRoute = async ({ request }) => {
 
   try {
     const candidaturas = await listCandidaturas({ vagaId, status, search });
-    return new Response(JSON.stringify({ ok: true, candidaturas }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
-    });
+    return jsonResponse({ ok: true, candidaturas }, 200, { 'Cache-Control': 'private, no-store' });
   } catch (err) {
     console.error('[admin/candidaturas GET]', err);
-    return new Response(
-      JSON.stringify({
-        ok: false,
-        message: err instanceof Error ? err.message : 'Erro ao carregar candidaturas.',
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+    return jsonResponse(
+      { ok: false, message: 'Erro ao carregar candidaturas.' },
+      500,
+      { 'Cache-Control': 'private, no-store' }
     );
   }
 };

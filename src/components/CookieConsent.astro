@@ -60,8 +60,10 @@ const { ga4Id = '', clarityId = '' } = Astro.props;
     if (w.__ccgAnalyticsLoaded) return;
     w.__ccgAnalyticsLoaded = true;
 
-    const ga4Id = banner.dataset.ga4;
-    const clarityId = banner.dataset.clarity;
+    const rawGa4Id = (banner.dataset.ga4 || '').trim();
+    const rawClarityId = (banner.dataset.clarity || '').trim();
+    const ga4Id = /^G-[A-Z0-9]{4,20}$/i.test(rawGa4Id) ? rawGa4Id : '';
+    const clarityId = /^[a-z0-9]{4,24}$/i.test(rawClarityId) ? rawClarityId : '';
     if (ga4Id) {
       const s = document.createElement('script');
       s.async = true;

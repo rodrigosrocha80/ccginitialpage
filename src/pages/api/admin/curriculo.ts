@@ -1,7 +1,9 @@
 import type { APIRoute } from 'astro';
+import path from 'node:path';
 import { requireAdmin } from '@/lib/adminAuth';
 import { getCandidaturaById } from '@/lib/careersDb';
 import { readResumeForDownload } from '@/lib/resumeStorage';
+import { isValidUuid, sanitizeHeaderValue } from '@/lib/security';
 
 export const prerender = false;
 
@@ -13,13 +15,19 @@ export const GET: APIRoute = async ({ request }) => {
   const id = url.searchParams.get('id');
   const forceDownload = url.searchParams.get('download') === '1';
 
-  if (!id) {
-    return new Response('ID da candidatura ausente.', { status: 400 });
+  if (!isValidUuid(id)) {
+    return new Response('ID da candidatura inválido.', {
+      status: 400,
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   }
 
-  const candidatura = await getCandidaturaById(id);
+  const candidatura = await getCandidaturaById(id!);
   if (!candidatura) {
-    return new Response('Candidatura não encontrada.', { status: 404 });
+    return new Response('Candidatura não encontrada.', {
+      status: 404,
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   }
 
   try {
@@ -31,12 +39,16 @@ export const GET: APIRoute = async ({ request }) => {
     });
 
     if (!file) {
-      return new Response('Arquivo de currículo não encontrado no storage.', { status: 404 });
+      return new Response('Arquivo de currículo não encontrado.', {
+        status: 404,
+        headers: { 'Cache-Control': 'private, no-store' },
+      });
     }
 
-    const safeFileName = candidatura.curriculoNome.replace(/["\r\n]/g, '');
-    const isPdf =
-      file.contentType.includes('pdf') || safeFileName.toLowerCase().endsWith('.pdf');
+    const baseName = path.basename(candidatura.curriculoNome);
+    const safeFileName =
+      sanitizeHeaderValue(baseName, 160).replace(/["\\/;]/g, '_') || 'curriculo.pdf';
+    const isPdf = file.contentType === 'application/pdf';
     const disposition =
       !forceDownload && isPdf
         ? `inline; filename="${safeFileName}"`
@@ -47,12 +59,17 @@ export const GET: APIRoute = async ({ request }) => {
       headers: {
         'Content-Type': file.contentType,
         'Content-Disposition': disposition,
-        'Cache-Control': 'private, no-store',
+        'Content-Security-Policy': "default-src 'none'; sandbox",
         'X-Content-Type-Options': 'nosniff',
+        'Cache-Control': 'private, no-store',
+        'X-Robots-Tag': 'noindex, nofollow',
       },
     });
   } catch (err) {
     console.error('[admin/curriculo GET]', err);
-    return new Response('Erro ao baixar currículo.', { status: 500 });
+    return new Response('Erro ao baixar currículo.', {
+      status: 500,
+      headers: { 'Cache-Control': 'private, no-store' },
+    });
   }
 };

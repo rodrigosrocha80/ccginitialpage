@@ -229,8 +229,8 @@ export const candidaturaInputSchema = z.object({
       'Informe uma URL válida começando com http:// ou https://'
     ),
   mensagem: z.string().trim().max(2000).optional().nullable(),
-  curriculoUrl: z.string().trim().min(1, 'Envie seu currículo antes de finalizar.'),
-  curriculoPathname: z.string().trim().min(1, 'Arquivo de currículo inválido.'),
+  curriculoUrl: z.string().trim().min(1, 'Envie seu currículo antes de finalizar.').max(2048),
+  curriculoPathname: z.string().trim().min(1, 'Arquivo de currículo inválido.').max(255),
   curriculoNome: z.string().trim().min(1).max(255),
   curriculoTipo: z.string().trim().min(1).max(120),
   curriculoTamanho: z
@@ -242,7 +242,7 @@ export const candidaturaInputSchema = z.object({
   consentimentoLgpd: z.boolean().refine((v) => v === true, {
     message: 'É necessário concordar com o tratamento de dados conforme a Política de Privacidade (LGPD).',
   }),
-  website: z.string().max(0).optional(),
+  website: z.string().max(500).optional(),
   turnstileToken: z.string().optional(),
 });
 

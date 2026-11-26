@@ -25,8 +25,6 @@ export default defineConfig({
     '/nossa-politica.html': { status: 301, destination: '/politica-integrada' },
     '/contatos.html': { status: 301, destination: '/contato' },
     '/trabalhe-conosco.html': { status: 301, destination: '/trabalhe-conosco' },
-    '/admin': { status: 302, destination: '/admin/vagas' },
-    '/trabalhe-conosco/admin/vagas': { status: 302, destination: '/admin/vagas' },
     // Subpáginas antigas de equipamentos -> páginas dedicadas por máquina/categoria
     '/escavadeira-hidraulica.html': { status: 301, destination: '/equipamentos/escavadeira-hidraulica-concha' },
     '/miniescavadeira.html': { status: 301, destination: '/equipamentos/mini-escavadeira-esteira' },

@@ -1,12 +1,9 @@
-import { createHmac, timingSafeEqual } from 'node:crypto';
+import { createHash, createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { getEnv } from './security';
 
 export const ADMIN_COOKIE_NAME = 'ccg_admin_session';
 const SESSION_TTL_SECONDS = 60 * 60 * 12; // 12 horas
-
-function getEnv(key: string): string | undefined {
-  const fromImportMeta = (import.meta.env as Record<string, string | undefined>)[key];
-  return fromImportMeta || process.env[key];
-}
+let _warnedMissingSessionSecret = false;
 
 export function isProdEnvironment(): boolean {
   return Boolean(import.meta.env.PROD || process.env.NODE_ENV === 'production');
@@ -17,8 +14,17 @@ export function getAdminConfig() {
   const configuredPassword = getEnv('ADMIN_PASSWORD')?.trim();
   const isDevFallbackPassword = !configuredPassword && !isProdEnvironment();
   const password = configuredPassword || (isDevFallbackPassword ? 'ccg-admin-dev' : '');
+  const configuredSecret = getEnv('ADMIN_SESSION_SECRET')?.trim();
+
+  if (isProdEnvironment() && !configuredSecret && !_warnedMissingSessionSecret) {
+    _warnedMissingSessionSecret = true;
+    console.warn(
+      '[adminAuth] ADMIN_SESSION_SECRET não definido em produção; defina uma chave aleatória independente.'
+    );
+  }
+
   const secret =
-    getEnv('ADMIN_SESSION_SECRET')?.trim() ||
+    configuredSecret ||
     (password ? createHmac('sha256', 'ccg-vagas-session-salt').update(password).digest('hex') : '');
 
   return {
@@ -31,10 +37,9 @@ export function getAdminConfig() {
 }
 
 function safeEqual(a: string, b: string): boolean {
-  const bufA = Buffer.from(a);
-  const bufB = Buffer.from(b);
-  if (bufA.length !== bufB.length) return false;
-  return timingSafeEqual(bufA, bufB);
+  const digestA = createHash('sha256').update(a).digest();
+  const digestB = createHash('sha256').update(b).digest();
+  return timingSafeEqual(digestA, digestB);
 }
 
 export function verifyAdminCredentials(user: string, password: string): {
@@ -45,7 +50,7 @@ export function verifyAdminCredentials(user: string, password: string): {
   if (!cfg.isConfigured) {
     return {
       ok: false,
-      reason: 'A variável de ambiente ADMIN_PASSWORD não está configurada neste ambiente.',
+      reason: 'Autenticação administrativa indisponível neste ambiente.',
     };
   }
   const validUser = safeEqual(user.trim(), cfg.user);
@@ -59,6 +64,7 @@ export function verifyAdminCredentials(user: string, password: string): {
 interface SessionPayload {
   sub: string;
   exp: number;
+  jti: string;
 }
 
 function signPayload(payloadB64: string, secret: string): string {
@@ -68,11 +74,12 @@ function signPayload(payloadB64: string, secret: string): string {
 export function createSessionToken(username: string): string {
   const cfg = getAdminConfig();
   if (!cfg.secret) {
-    throw new Error('ADMIN_PASSWORD ou ADMIN_SESSION_SECRET não configurado.');
+    throw new Error('Configuração de sessão administrativa ausente.');
   }
   const payload: SessionPayload = {
     sub: username,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
+    jti: randomUUID(),
   };
   const payloadB64 = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
   const sig = signPayload(payloadB64, cfg.secret);
@@ -82,7 +89,7 @@ export function createSessionToken(username: string): string {
 export function verifySessionToken(token: string | undefined): SessionPayload | null {
   if (!token) return null;
   const cfg = getAdminConfig();
-  if (!cfg.secret) return null;
+  if (!cfg.secret || !cfg.isConfigured) return null;
 
   const parts = token.split('.');
   if (parts.length !== 2) return null;
@@ -91,8 +98,13 @@ export function verifySessionToken(token: string | undefined): SessionPayload | 
   if (!safeEqual(sig, expectedSig)) return null;
 
   try {
-    const parsed = JSON.parse(Buffer.from(payloadB64, 'base64url').toString('utf8')) as SessionPayload;
-    if (!parsed.sub || typeof parsed.exp !== 'number') return null;
+    const parsed = JSON.parse(
+      Buffer.from(payloadB64, 'base64url').toString('utf8')
+    ) as SessionPayload;
+    if (!parsed.sub || typeof parsed.exp !== 'number' || typeof parsed.jti !== 'string') {
+      return null;
+    }
+    if (!safeEqual(parsed.sub, cfg.user)) return null;
     if (parsed.exp < Math.floor(Date.now() / 1000)) return null;
     return parsed;
   } catch {
@@ -108,7 +120,13 @@ export function parseCookieHeader(cookieHeader: string | null): Record<string, s
     if (idx === -1) continue;
     const key = part.slice(0, idx).trim();
     const val = part.slice(idx + 1).trim();
-    if (key) cookies[key] = decodeURIComponent(val);
+    if (key) {
+      try {
+        cookies[key] = decodeURIComponent(val);
+      } catch {
+        cookies[key] = val;
+      }
+    }
   }
   return cookies;
 }
@@ -155,7 +173,13 @@ export function requireAdmin(request: Request): { user: string } | Response {
   if (!session) {
     return new Response(
       JSON.stringify({ ok: false, message: 'Sessão expirada ou não autenticada.' }),
-      { status: 401, headers: { 'Content-Type': 'application/json' } }
+      {
+        status: 401,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'private, no-store',
+        },
+      }
     );
   }
   return session;

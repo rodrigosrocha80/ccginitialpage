@@ -43,8 +43,11 @@ export function isUsingLocalFallback(): boolean {
 
 function resolveSslOption(connectionString?: string): PoolConfig['ssl'] {
   const pgSsl = getEnv('PGSSL')?.trim().toLowerCase();
+  const rejectUnauthorized =
+    getEnv('PGSSL_REJECT_UNAUTHORIZED')?.trim().toLowerCase() !== 'false';
+
   if (pgSsl === 'true' || pgSsl === '1' || pgSsl === 'require') {
-    return { rejectUnauthorized: false };
+    return { rejectUnauthorized };
   }
   if (pgSsl === 'false' || pgSsl === '0' || pgSsl === 'disable') {
     return false;
@@ -55,7 +58,7 @@ function resolveSslOption(connectionString?: string): PoolConfig['ssl'] {
       connectionString.includes('neon.tech') ||
       connectionString.includes('supabase.co')
     ) {
-      return { rejectUnauthorized: false };
+      return { rejectUnauthorized };
     }
   }
   return false;
@@ -98,6 +101,10 @@ function getPool(): Pool {
   throw new Error(
     'Banco de dados PostgreSQL não configurado. Defina DATABASE_URL ou PGHOST/PGUSER/PGPASSWORD.'
   );
+}
+
+export function getPostgresPool(): Pool {
+  return getPool();
 }
 
 async function ensurePostgresSchema(): Promise<Pool> {

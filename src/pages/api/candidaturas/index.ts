@@ -5,172 +5,198 @@ import {
   isAllowedResumeFile,
 } from '@/lib/careersSchema';
 import { createCandidatura, getVagaById } from '@/lib/careersDb';
+import { isProdEnvironment } from '@/lib/adminAuth';
 import { escapeHtml, isMailerConfigured, sendMail } from '@/lib/mailer';
+import { verifyStoredResume } from '@/lib/resumeStorage';
+import {
+  checkRateLimit,
+  clearUploadTicketCookie,
+  getClientIp,
+  getEnv,
+  isTurnstileConfigured,
+  isValidUuid,
+  jsonResponse,
+  rateLimitHeaders,
+  readJsonBody,
+  sanitizeHeaderValue,
+  verifySameOrigin,
+  verifyTurnstileToken,
+  verifyUploadTicketCookie,
+} from '@/lib/security';
 import { SITE } from '@/lib/site';
 
 export const prerender = false;
 
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX_REQUESTS = 6;
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_MAX_REQUESTS) return false;
-  entry.count += 1;
-  return true;
-}
-
-async function verifyTurnstile(
-  token: string | undefined,
-  secret: string,
-  ip: string
-): Promise<boolean> {
-  if (!token) return false;
-  const form = new URLSearchParams({ secret, response: token, remoteip: ip });
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    body: form,
-  });
-  if (!res.ok) return false;
-  const data = (await res.json()) as { success?: boolean };
-  return Boolean(data.success);
-}
-
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  const ip =
-    request.headers.get('cf-connecting-ip') ||
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    clientAddress ||
-    'unknown';
+  if (!verifySameOrigin(request)) {
+    return jsonResponse({ ok: false, message: 'Origem da requisição não autorizada.' }, 403);
+  }
 
-  if (!checkRateLimit(ip)) {
-    return new Response(
-      JSON.stringify({
+  const ip = getClientIp(request, clientAddress);
+  const limit = await checkRateLimit({
+    namespace: 'candidaturas',
+    key: ip,
+    maxRequests: 5,
+    windowMs: 60_000,
+  });
+
+  if (!limit.allowed) {
+    return jsonResponse(
+      {
         ok: false,
         message: 'Muitas candidaturas em sequência. Aguarde um minuto e tente novamente.',
-      }),
-      { status: 429, headers: { 'Content-Type': 'application/json' } }
+      },
+      429,
+      rateLimitHeaders(limit.retryAfterSeconds)
     );
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response(
-      JSON.stringify({ ok: false, message: 'Formato de requisição inválido.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
-    );
+  const bodyResult = await readJsonBody(request, 32_768);
+  if (!bodyResult.ok) {
+    return jsonResponse({ ok: false, message: bodyResult.message }, bodyResult.status);
   }
 
-  const parsed = candidaturaInputSchema.safeParse(body);
+  const parsed = candidaturaInputSchema.safeParse(bodyResult.data);
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues) {
       const key = String(issue.path[0] ?? 'geral');
       if (!fieldErrors[key]) fieldErrors[key] = issue.message;
     }
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         ok: false,
         message: 'Verifique os campos destacados abaixo.',
         fieldErrors,
-      }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
+      },
+      400
     );
   }
 
   const data = parsed.data;
 
   // Honeypot
-  if (data.website && data.website.length > 0) {
-    return new Response(
-      JSON.stringify({ ok: true, message: 'Candidatura registrada com sucesso.' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    );
+  if (data.website && data.website.trim().length > 0) {
+    return jsonResponse({ ok: true, message: 'Candidatura registrada com sucesso.' }, 200);
   }
 
   if (!isAllowedResumeFile(data.curriculoNome, data.curriculoTipo)) {
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         ok: false,
         message: 'Formato de currículo não suportado. Envie PDF, DOC ou DOCX.',
         fieldErrors: { curriculo: 'Envie um arquivo em PDF, DOC ou DOCX (até 10 MB).' },
-      }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
+      },
+      400
     );
   }
 
-  const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET_KEY;
-  if (turnstileSecret) {
-    const valid = await verifyTurnstile(data.turnstileToken, turnstileSecret, ip);
-    if (!valid) {
-      return new Response(
-        JSON.stringify({ ok: false, message: 'Falha na verificação anti-spam. Tente novamente.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
+  const ticket = verifyUploadTicketCookie(request, data.curriculoPathname);
+  const clearCookie = clearUploadTicketCookie(request);
+
+  if (isTurnstileConfigured()) {
+    if (!(ticket.valid && ticket.turnstileVerified)) {
+      const check = await verifyTurnstileToken(data.turnstileToken, ip);
+      if (!check.ok) {
+        return jsonResponse(
+          { ok: false, message: 'Falha na verificação anti-spam. Tente novamente.' },
+          400,
+          { 'Set-Cookie': clearCookie }
+        );
+      }
     }
+  }
+
+  const verifiedResume = await verifyStoredResume({
+    storage: data.curriculoStorage,
+    pathname: data.curriculoPathname,
+    url: data.curriculoUrl,
+    fileName: data.curriculoNome,
+    contentType: data.curriculoTipo,
+    size: data.curriculoTamanho,
+    isProd: isProdEnvironment(),
+  });
+
+  if (!verifiedResume.ok) {
+    return jsonResponse(
+      {
+        ok: false,
+        message: verifiedResume.message,
+        fieldErrors: { curriculo: verifiedResume.message },
+      },
+      400,
+      { 'Set-Cookie': clearCookie }
+    );
   }
 
   let resolvedVagaTitulo = 'Banco de Talentos';
   if (data.vagaId) {
+    if (!isValidUuid(data.vagaId)) {
+      return jsonResponse(
+        { ok: false, message: 'Vaga selecionada inválida.' },
+        400,
+        { 'Set-Cookie': clearCookie }
+      );
+    }
     try {
       const vaga = await getVagaById(data.vagaId);
       if (!vaga || vaga.status !== 'aberta') {
-        return new Response(
-          JSON.stringify({
+        return jsonResponse(
+          {
             ok: false,
             message: 'Esta vaga não está mais aberta para novas candidaturas.',
-          }),
-          { status: 400, headers: { 'Content-Type': 'application/json' } }
+          },
+          400,
+          { 'Set-Cookie': clearCookie }
         );
       }
       resolvedVagaTitulo = vaga.titulo;
     } catch (err) {
       console.error('[candidaturas] Erro ao validar vaga:', err);
-      return new Response(
-        JSON.stringify({ ok: false, message: 'Vaga selecionada inválida.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      return jsonResponse(
+        { ok: false, message: 'Vaga selecionada inválida.' },
+        400,
+        { 'Set-Cookie': clearCookie }
       );
     }
-  } else if (data.vagaTitulo) {
-    resolvedVagaTitulo = data.vagaTitulo;
   }
+
+  const authoritativeInput = {
+    ...data,
+    cpf: null,
+    curriculoUrl: verifiedResume.url,
+    curriculoPathname: verifiedResume.pathname,
+    curriculoTipo: verifiedResume.contentType,
+    curriculoTamanho: verifiedResume.size,
+    curriculoStorage: verifiedResume.storage,
+  };
 
   let saved;
   try {
-    saved = await createCandidatura(data, resolvedVagaTitulo);
+    saved = await createCandidatura(authoritativeInput, resolvedVagaTitulo);
   } catch (err) {
     console.error('[candidaturas] Erro ao salvar candidatura no banco:', err);
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         ok: false,
         message: 'Não foi possível registrar sua candidatura agora. Tente novamente em instantes.',
-      }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
+      },
+      500,
+      { 'Set-Cookie': clearCookie }
     );
   }
 
   const protocolo = saved.id.slice(0, 8).toUpperCase();
-  const toEmail =
-    import.meta.env.RH_TO_EMAIL ||
-    process.env.RH_TO_EMAIL ||
-    SITE.emailCurriculos;
+  const toEmail = getEnv('RH_TO_EMAIL')?.trim() || SITE.emailCurriculos;
+  let emailSent = false;
 
   if (isMailerConfigured()) {
     try {
-      const siteUrl = (
-        import.meta.env.PUBLIC_SITE_URL ||
-        process.env.PUBLIC_SITE_URL ||
-        SITE.domain
-      ).replace(/\/$/, '');
+      const siteUrl = (getEnv('PUBLIC_SITE_URL')?.trim() || SITE.domain).replace(/\/$/, '');
       const adminUrl = `${siteUrl}/admin/vagas`;
+      const safeSubject = sanitizeHeaderValue(
+        `[Currículo CCG] ${resolvedVagaTitulo} — ${data.nome}`
+      );
       const textLines = [
         'Nova candidatura recebida — CCG Locações',
         `Vaga: ${resolvedVagaTitulo}`,
@@ -180,7 +206,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         `Cidade / UF: ${data.cidadeUf}`,
         ...(data.cnh ? [`CNH: ${data.cnh}`] : []),
         ...(data.pretensaoSalarial ? [`Pretensão salarial: ${data.pretensaoSalarial}`] : []),
-        `Currículo anexado: ${data.curriculoNome} (${formatBytes(data.curriculoTamanho)})`,
+        `Currículo anexado: ${data.curriculoNome} (${formatBytes(verifiedResume.size)})`,
         '',
         'Resumo de experiência:',
         data.experienciaResumo,
@@ -190,10 +216,10 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         `Protocolo: ${protocolo} • Consentimento LGPD confirmado.`,
       ];
 
-      await sendMail({
+      const mailResult = await sendMail({
         to: toEmail,
-        replyTo: data.email,
-        subject: `[Currículo CCG] ${resolvedVagaTitulo} — ${data.nome}`,
+        replyTo: sanitizeHeaderValue(data.email, 160),
+        subject: safeSubject,
         text: textLines.join('\n'),
         html: `
           <div style="font-family: Arial, sans-serif; color: #111814; max-width: 640px;">
@@ -208,7 +234,7 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
               <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Cidade / UF:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.cidadeUf)}</td></tr>
               ${data.cnh ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>CNH:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.cnh)}</td></tr>` : ''}
               ${data.pretensaoSalarial ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Pretensão salarial:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.pretensaoSalarial)}</td></tr>` : ''}
-              <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Currículo anexado:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.curriculoNome)} (${escapeHtml(formatBytes(data.curriculoTamanho))})</td></tr>
+              <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Currículo anexado:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.curriculoNome)} (${escapeHtml(formatBytes(verifiedResume.size))})</td></tr>
             </table>
             <p style="margin-top: 16px;"><strong>Resumo de experiência:</strong></p>
             <p style="white-space: pre-wrap; background: #f3faf5; padding: 12px; border-radius: 6px; font-size: 14px;">${escapeHtml(data.experienciaResumo)}</p>
@@ -222,25 +248,35 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
           </div>
         `,
       });
+
+      if (mailResult.sent) {
+        emailSent = true;
+        console.info('[candidaturas] E-mail enviado:', {
+          provider: mailResult.provider,
+          protocolo,
+          to: toEmail,
+          messageId: mailResult.messageId,
+        });
+      }
     } catch (emailErr) {
-      console.error('[candidaturas] Erro ao enviar notificação via SMTP:', emailErr);
+      console.error('[candidaturas] Erro ao enviar e-mail:', emailErr);
     }
   } else {
-    console.info('[candidaturas] Nova candidatura registrada (configure SMTP_HOST, SMTP_USER e SMTP_PASS para envio real):', {
+    console.info('[candidaturas] Nova candidatura registrada (serviço de e-mail não configurado):', {
       protocolo,
       vaga: resolvedVagaTitulo,
-      nome: data.nome,
-      curriculo: data.curriculoNome,
     });
   }
 
-  return new Response(
-    JSON.stringify({
+  return jsonResponse(
+    {
       ok: true,
-      protocolo: saved.id.slice(0, 8).toUpperCase(),
+      protocolo,
+      emailSent,
       message:
         'Candidatura enviada com sucesso! Nosso time de Recursos Humanos analisará seu currículo.',
-    }),
-    { status: 201, headers: { 'Content-Type': 'application/json' } }
+    },
+    201,
+    { 'Set-Cookie': clearCookie }
   );
 };

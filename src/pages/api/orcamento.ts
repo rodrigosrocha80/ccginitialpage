@@ -1,117 +1,119 @@
 import type { APIRoute } from 'astro';
 import { escapeHtml, isMailerConfigured, sendMail } from '@/lib/mailer';
 import { quoteSchema } from '@/lib/quoteSchema';
+import {
+  createOrcamento,
+  markOrcamentoEmailSent,
+  type OrcamentoRecord,
+} from '@/lib/quotesDb';
+import {
+  checkRateLimit,
+  getClientIp,
+  getEnv,
+  jsonResponse,
+  rateLimitHeaders,
+  readJsonBody,
+  sanitizeHeaderValue,
+  verifySameOrigin,
+  verifyTurnstileToken,
+} from '@/lib/security';
 import { SITE } from '@/lib/site';
 
 export const prerender = false;
 
-const RATE_WINDOW_MS = 60_000;
-const RATE_MAX_REQUESTS = 5;
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
-
-function checkRateLimit(ip: string): boolean {
-  const now = Date.now();
-  const entry = rateLimitMap.get(ip);
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_WINDOW_MS });
-    return true;
-  }
-  if (entry.count >= RATE_MAX_REQUESTS) {
-    return false;
-  }
-  entry.count += 1;
-  return true;
-}
-
-async function verifyTurnstile(token: string | undefined, secret: string, ip: string): Promise<boolean> {
-  if (!token) return false;
-  const form = new URLSearchParams({ secret, response: token, remoteip: ip });
-  const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    method: 'POST',
-    body: form,
-  });
-  if (!res.ok) return false;
-  const data = (await res.json()) as { success?: boolean };
-  return Boolean(data.success);
-}
-
 export const POST: APIRoute = async ({ request, clientAddress }) => {
-  const ip =
-    request.headers.get('cf-connecting-ip') ||
-    request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    clientAddress ||
-    'unknown';
+  if (!verifySameOrigin(request)) {
+    return jsonResponse({ ok: false, message: 'Origem da requisição não autorizada.' }, 403);
+  }
 
-  if (!checkRateLimit(ip)) {
-    return new Response(
-      JSON.stringify({
+  const ip = getClientIp(request, clientAddress);
+  const limit = await checkRateLimit({
+    namespace: 'orcamento',
+    key: ip,
+    maxRequests: 5,
+    windowMs: 60_000,
+  });
+
+  if (!limit.allowed) {
+    return jsonResponse(
+      {
         ok: false,
         message: 'Muitas solicitações em sequência. Aguarde um minuto ou fale diretamente pelo WhatsApp.',
-      }),
-      { status: 429, headers: { 'Content-Type': 'application/json' } }
+      },
+      429,
+      rateLimitHeaders(limit.retryAfterSeconds)
     );
   }
 
-  let body: unknown;
-  try {
-    body = await request.json();
-  } catch {
-    return new Response(
-      JSON.stringify({ ok: false, message: 'Formato de requisição inválido.' }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
-    );
+  const bodyResult = await readJsonBody(request, 16_384);
+  if (!bodyResult.ok) {
+    return jsonResponse({ ok: false, message: bodyResult.message }, bodyResult.status);
   }
 
-  const parsed = quoteSchema.safeParse(body);
+  const parsed = quoteSchema.safeParse(bodyResult.data);
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {};
     for (const issue of parsed.error.issues) {
       const key = String(issue.path[0] ?? 'geral');
       if (!fieldErrors[key]) fieldErrors[key] = issue.message;
     }
-    return new Response(
-      JSON.stringify({
+    return jsonResponse(
+      {
         ok: false,
         message: 'Verifique os campos destacados abaixo.',
         fieldErrors,
-      }),
-      { status: 400, headers: { 'Content-Type': 'application/json' } }
+      },
+      400
     );
   }
 
   const data = parsed.data;
 
-  // Se o honeypot foi preenchido, responde 200 silenciosamente sem disparar e-mail
-  if (data.website && data.website.length > 0) {
-    return new Response(
-      JSON.stringify({ ok: true, message: 'Solicitação recebida com sucesso.' }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
+  // Se o honeypot foi preenchido, responde 200 silenciosamente sem salvar no banco ou disparar e-mail
+  if (data.website && data.website.trim().length > 0) {
+    return jsonResponse({ ok: true, message: 'Solicitação recebida com sucesso.' }, 200);
+  }
+
+  const turnstile = await verifyTurnstileToken(data.turnstileToken, ip);
+  if (!turnstile.ok) {
+    return jsonResponse(
+      { ok: false, message: 'Falha na verificação anti-spam. Tente novamente.' },
+      400
     );
   }
 
-  const turnstileSecret = import.meta.env.TURNSTILE_SECRET_KEY || process.env.TURNSTILE_SECRET_KEY;
-  if (turnstileSecret) {
-    const valid = await verifyTurnstile(data.turnstileToken, turnstileSecret, ip);
-    if (!valid) {
-      return new Response(
-        JSON.stringify({ ok: false, message: 'Falha na verificação anti-spam. Tente novamente.' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
+  let savedRecord: OrcamentoRecord | null = null;
+  try {
+    savedRecord = await createOrcamento(data);
+  } catch (dbErr) {
+    console.error('[orcamento] Erro ao salvar no banco:', dbErr);
   }
 
-  const toEmail =
-    import.meta.env.QUOTE_TO_EMAIL ||
-    process.env.QUOTE_TO_EMAIL ||
-    SITE.emailContratos;
+  const protocolo = savedRecord?.protocolo || null;
+  const mailerConfigured = isMailerConfigured();
+
+  if (!mailerConfigured && !savedRecord) {
+    return jsonResponse(
+      {
+        ok: false,
+        message: 'Não foi possível concluir o envio agora. Por favor, acione nosso WhatsApp comercial.',
+      },
+      500
+    );
+  }
+
+  const toEmail = getEnv('QUOTE_TO_EMAIL')?.trim() || SITE.emailContratos;
   const subjectEquip = data.equipamentoInteresse
     ? ` — ${data.equipamentoInteresse}`
     : '';
+  const safeSubject = sanitizeHeaderValue(`[Orçamento Site CCG] ${data.nome}${subjectEquip}`);
+  let emailSent = false;
 
-  if (isMailerConfigured()) {
+  if (mailerConfigured) {
     try {
       const textLines = [
         'Nova solicitação de orçamento — CCG Locações',
+        ...(protocolo ? [`Protocolo: ${protocolo}`] : []),
         `Nome / Responsável: ${data.nome}`,
         `Telefone / WhatsApp: ${data.telefone}`,
         `E-mail: ${data.email}`,
@@ -125,15 +127,16 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
         'Consentimento LGPD confirmado pelo usuário.',
       ];
 
-      await sendMail({
+      const mailResult = await sendMail({
         to: toEmail,
-        replyTo: data.email,
-        subject: `[Orçamento Site CCG] ${data.nome}${subjectEquip}`,
+        replyTo: sanitizeHeaderValue(data.email, 160),
+        subject: safeSubject,
         text: textLines.join('\n'),
         html: `
           <div style="font-family: Arial, sans-serif; color: #111814; max-width: 600px;">
             <h2 style="color: #105e2d; margin-bottom: 12px;">Nova solicitação de orçamento — CCG Locações</h2>
             <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+              ${protocolo ? `<tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Protocolo:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">#${escapeHtml(protocolo)}</td></tr>` : ''}
               <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Nome / Responsável:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.nome)}</td></tr>
               <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>Telefone / WhatsApp:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.telefone)}</td></tr>
               <tr><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;"><strong>E-mail:</strong></td><td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(data.email)}</td></tr>
@@ -145,30 +148,50 @@ export const POST: APIRoute = async ({ request, clientAddress }) => {
           </div>
         `,
       });
+
+      if (mailResult.sent) {
+        emailSent = true;
+        console.info('[orcamento] E-mail enviado:', {
+          provider: mailResult.provider,
+          protocolo,
+          to: toEmail,
+          messageId: mailResult.messageId,
+        });
+
+        if (savedRecord) {
+          try {
+            await markOrcamentoEmailSent(savedRecord.id);
+          } catch (markErr) {
+            console.warn('[orcamento] E-mail enviado, mas falhou ao atualizar email_enviado:', markErr);
+          }
+        }
+      }
     } catch (err) {
-      console.error('[orcamento] Erro ao enviar via SMTP:', err);
-      return new Response(
-        JSON.stringify({
-          ok: false,
-          message: 'Não foi possível concluir o envio automático agora. Por favor, acione nosso WhatsApp comercial.',
-        }),
-        { status: 502, headers: { 'Content-Type': 'application/json' } }
-      );
+      console.error('[orcamento] Erro ao enviar e-mail:', err);
+      if (!savedRecord) {
+        return jsonResponse(
+          {
+            ok: false,
+            message: 'Não foi possível concluir o envio automático agora. Por favor, acione nosso WhatsApp comercial.',
+          },
+          502
+        );
+      }
     }
   } else {
-    console.info('[orcamento] Lead validado (configure SMTP_HOST, SMTP_USER e SMTP_PASS para envio real):', {
-      nome: data.nome,
-      telefone: data.telefone,
-      email: data.email,
+    console.info('[orcamento] Lead salvo no banco (serviço de e-mail não configurado):', {
+      protocolo,
       equipamentoInteresse: data.equipamentoInteresse,
     });
   }
 
-  return new Response(
-    JSON.stringify({
+  return jsonResponse(
+    {
       ok: true,
+      emailSent,
+      ...(protocolo ? { protocolo } : {}),
       message: 'Recebemos sua solicitação! Nossa equipe técnica responderá em até 24 horas úteis.',
-    }),
-    { status: 200, headers: { 'Content-Type': 'application/json' } }
+    },
+    200
   );
 };

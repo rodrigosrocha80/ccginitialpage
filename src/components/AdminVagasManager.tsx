@@ -17,11 +17,25 @@ import {
   type VagaStatus,
 } from '@/lib/careersSchema';
 import { buildVagaShareData } from '@/lib/share';
+import { showToast } from '@/lib/toast';
+
+interface MailerEnvStatus {
+  configured: boolean;
+  provider?: 'brevo' | 'smtp' | null;
+  host: string | null;
+  port: number | null;
+  secure: boolean;
+  from: string | null;
+  quoteTo: string;
+  rhTo: string;
+}
 
 interface EnvStatus {
   postgresConfigured: boolean;
   blobConfigured: boolean;
   localFallback: boolean;
+  smtpConfigured?: boolean;
+  mailer?: MailerEnvStatus;
 }
 
 interface VagaFormState {
@@ -79,18 +93,9 @@ function buildCandidateWhatsApp(phone: string, nome: string, vaga: string): stri
   return `https://wa.me/${e164}?text=${msg}`;
 }
 
-export function AdminVagasManager() {
-  const [authLoading, setAuthLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
-  const [adminUser, setAdminUser] = useState('');
-  const [isDevFallbackPassword, setIsDevFallbackPassword] = useState(false);
+export function AdminVagasManager({ initialUser = '' }: { initialUser?: string }) {
+  const [adminUser, setAdminUser] = useState(initialUser);
   const [envStatus, setEnvStatus] = useState<EnvStatus | null>(null);
-
-  // Login form
-  const [loginUser, setLoginUser] = useState('admin');
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
-  const [loginSubmitting, setLoginSubmitting] = useState(false);
 
   // Tabs e dados
   const [activeTab, setActiveTab] = useState<'vagas' | 'candidaturas'>('vagas');
@@ -98,7 +103,7 @@ export function AdminVagasManager() {
   const [candidaturas, setCandidaturas] = useState<Candidatura[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [globalError, setGlobalError] = useState('');
-  const [toast, setToast] = useState('');
+  const [testingEmailTarget, setTestingEmailTarget] = useState<'orcamento' | 'rh' | null>(null);
 
   // Modal/form de vaga
   const [showVagaForm, setShowVagaForm] = useState(false);
@@ -115,9 +120,63 @@ export function AdminVagasManager() {
   const [editCandNotas, setEditCandNotas] = useState('');
   const [savingCand, setSavingCand] = useState(false);
 
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 4000);
+  const notifySuccess = (msg: string) => {
+    showToast({
+      variant: 'success',
+      title: msg,
+      durationMs: 4500,
+    });
+  };
+
+  const handleTestEmail = async (target: 'orcamento' | 'rh') => {
+    setTestingEmailTarget(target);
+    try {
+      const res = await fetch('/api/admin/email-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ target }),
+      });
+
+      if (res.status === 401) {
+        window.location.reload();
+        return;
+      }
+
+      const json = (await res.json()) as {
+        ok?: boolean;
+        message?: string;
+        to?: string;
+        messageId?: string;
+      };
+
+      if (!res.ok || !json.ok) {
+        showToast({
+          variant: 'error',
+          title: 'Falha no teste de envio de e-mail',
+          description:
+            json.message || 'Não foi possível enviar o e-mail de teste. Verifique a configuração.',
+          durationMs: 8000,
+        });
+        return;
+      }
+
+      showToast({
+        variant: 'success',
+        title: 'E-mail de teste enviado!',
+        description: json.message || `Confirmação entregue para ${json.to || 'o destinatário'}.`,
+        badge: json.messageId ? `ID: ${json.messageId.slice(0, 28)}` : undefined,
+        meta: json.to ? `Destino: ${json.to}` : 'Envio confirmado',
+        durationMs: 7500,
+      });
+    } catch {
+      showToast({
+        variant: 'error',
+        title: 'Erro de conexão',
+        description: 'Não foi possível contactar o endpoint /api/admin/email-test.',
+      });
+    } finally {
+      setTestingEmailTarget(null);
+    }
   };
 
   const loadData = useCallback(async () => {
@@ -130,7 +189,7 @@ export function AdminVagasManager() {
       ]);
 
       if (vagasRes.status === 401 || candsRes.status === 401) {
-        setAuthenticated(false);
+        window.location.reload();
         return;
       }
 
@@ -160,66 +219,31 @@ export function AdminVagasManager() {
   }, []);
 
   useEffect(() => {
-    const checkSession = async () => {
+    const checkSessionAndLoad = async () => {
       try {
         const res = await fetch('/api/admin/me');
         const json = (await res.json()) as {
           authenticated?: boolean;
           user?: string | null;
-          isDevFallbackPassword?: boolean;
           environment?: EnvStatus;
         };
-        setAuthenticated(Boolean(json.authenticated));
-        setAdminUser(json.user || '');
-        setIsDevFallbackPassword(Boolean(json.isDevFallbackPassword));
+        if (!json.authenticated) {
+          window.location.reload();
+          return;
+        }
+        if (json.user) setAdminUser(json.user);
         if (json.environment) setEnvStatus(json.environment);
+        await loadData();
       } catch {
-        setAuthenticated(false);
-      } finally {
-        setAuthLoading(false);
+        setGlobalError('Falha de rede ao consultar o servidor.');
       }
     };
-    void checkSession();
-  }, []);
-
-  useEffect(() => {
-    if (authenticated) {
-      void loadData();
-    }
-  }, [authenticated, loadData]);
-
-  const handleLogin = async (e: SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setLoginError('');
-    setLoginSubmitting(true);
-    try {
-      const res = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user: loginUser, password: loginPassword }),
-      });
-      const json = (await res.json()) as { ok?: boolean; message?: string; user?: string };
-      if (!res.ok || !json.ok) {
-        setLoginError(json.message || 'Usuário ou senha inválidos.');
-        return;
-      }
-      setAuthenticated(true);
-      setAdminUser(json.user || loginUser);
-      setLoginPassword('');
-    } catch {
-      setLoginError('Erro de conexão ao realizar login.');
-    } finally {
-      setLoginSubmitting(false);
-    }
-  };
+    void checkSessionAndLoad();
+  }, [loadData]);
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
-    setAuthenticated(false);
-    setAdminUser('');
-    setVagas([]);
-    setCandidaturas([]);
-    setSelectedCand(null);
+    window.location.reload();
   };
 
   const openNewVaga = () => {
@@ -293,7 +317,7 @@ export function AdminVagasManager() {
       }
 
       setShowVagaForm(false);
-      showToast(isEdit ? 'Vaga atualizada com sucesso!' : 'Nova vaga cadastrada com sucesso!');
+      notifySuccess(isEdit ? 'Vaga atualizada com sucesso!' : 'Nova vaga cadastrada com sucesso!');
       await loadData();
     } catch {
       setGlobalError('Erro de conexão ao salvar a vaga.');
@@ -310,7 +334,7 @@ export function AdminVagasManager() {
     });
     if (res.ok) {
       setVagas((prev) => prev.map((v) => (v.id === vaga.id ? { ...v, status } : v)));
-      showToast(`Status da vaga atualizado para "${VAGA_STATUS_LABELS[status]}".`);
+      notifySuccess(`Status da vaga atualizado para "${VAGA_STATUS_LABELS[status]}".`);
     }
   };
 
@@ -322,7 +346,7 @@ export function AdminVagasManager() {
     const res = await fetch(`/api/admin/vagas/${vaga.id}`, { method: 'DELETE' });
     if (res.ok) {
       setVagas((prev) => prev.filter((v) => v.id !== vaga.id));
-      showToast('Vaga excluída com sucesso.');
+      notifySuccess('Vaga excluída com sucesso.');
     }
   };
 
@@ -350,7 +374,7 @@ export function AdminVagasManager() {
           prev.map((c) => (c.id === selectedCand.id ? json.candidatura! : c))
         );
         setSelectedCand(json.candidatura);
-        showToast('Candidatura atualizada.');
+        notifySuccess('Candidatura atualizada.');
       }
     } finally {
       setSavingCand(false);
@@ -366,7 +390,7 @@ export function AdminVagasManager() {
     if (res.ok) {
       setCandidaturas((prev) => prev.filter((c) => c.id !== cand.id));
       if (selectedCand?.id === cand.id) setSelectedCand(null);
-      showToast('Candidatura e currículo removidos.');
+      notifySuccess('Candidatura e currículo removidos.');
       await loadData();
     }
   };
@@ -398,85 +422,6 @@ export function AdminVagasManager() {
       totalCands: candidaturas.length,
     };
   }, [vagas, candidaturas]);
-
-  if (authLoading) {
-    return (
-      <div className="rounded-2xl border border-border-subtle bg-white p-10 text-center text-sm text-ink-secondary">
-        Verificando sessão administrativa...
-      </div>
-    );
-  }
-
-  if (!authenticated) {
-    return (
-      <div className="mx-auto max-w-md rounded-2xl border border-border-subtle bg-white p-6 shadow-sm sm:p-8">
-        <div className="border-b border-border-subtle pb-4">
-          <p className="text-xs font-bold uppercase tracking-wider text-ccg-green-800">
-            Acesso Restrito — RH CCG
-          </p>
-          <h2 className="mt-1 font-display text-2xl font-extrabold text-ink-primary">
-            Gestor de Vagas e Currículos
-          </h2>
-          <p className="mt-1 text-sm text-ink-secondary">
-            Entre com suas credenciais administrativas para gerenciar vagas e baixar currículos.
-          </p>
-        </div>
-
-        {isDevFallbackPassword && (
-          <div className="mt-4 rounded-xl bg-amber-50 p-3.5 text-xs text-amber-900 ring-1 ring-amber-400/40">
-            <strong>Modo desenvolvimento local:</strong> `ADMIN_PASSWORD` não foi definido no `.env`.
-            Use usuário <code>admin</code> e senha <code>ccg-admin-dev</code> para testes locais.
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="mt-5 space-y-4">
-          <div>
-            <label htmlFor="admin-user" className="mb-1.5 block text-sm font-semibold text-ink-primary">
-              Usuário
-            </label>
-            <input
-              id="admin-user"
-              type="text"
-              required
-              autoComplete="username"
-              value={loginUser}
-              onChange={(e) => setLoginUser(e.target.value)}
-              className="min-h-[44px] w-full rounded-lg border border-border-subtle bg-surface-canvas px-3.5 text-base text-ink-primary focus:border-ccg-green-700 focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="admin-pass" className="mb-1.5 block text-sm font-semibold text-ink-primary">
-              Senha
-            </label>
-            <input
-              id="admin-pass"
-              type="password"
-              required
-              autoComplete="current-password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              className="min-h-[44px] w-full rounded-lg border border-border-subtle bg-surface-canvas px-3.5 text-base text-ink-primary focus:border-ccg-green-700 focus:bg-white focus:outline-none"
-            />
-          </div>
-
-          {loginError && (
-            <p className="rounded-lg bg-red-50 p-3 text-sm font-medium text-red-800" role="alert">
-              {loginError}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={loginSubmitting}
-            className="min-h-[46px] w-full cursor-pointer rounded-xl bg-ccg-green-800 px-5 text-base font-bold text-white transition-colors hover:bg-ccg-green-900 disabled:opacity-60"
-          >
-            {loginSubmitting ? 'Entrando...' : 'Acessar Gestor de Vagas'}
-          </button>
-        </form>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -519,20 +464,62 @@ export function AdminVagasManager() {
       {/* Avisos de ambiente */}
       {envStatus?.localFallback && (
         <div className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-xs leading-relaxed text-amber-950">
-          <strong>Modo local de desenvolvimento ativo:</strong> `DATABASE_URL` e/ou
-          `BLOB_READ_WRITE_TOKEN` não estão definidos. Os dados e currículos estão sendo salvos na
-          pasta local <code>.local-data/</code>. Ao publicar na Vercel, conecte o{' '}
-          <strong>Neon Postgres</strong> e o <strong>Vercel Blob</strong> nas variáveis de ambiente
-          do projeto.
+          Ambiente de desenvolvimento local ativo.
         </div>
       )}
 
-      {toast && (
-        <div
-          role="status"
-          className="rounded-xl bg-ccg-green-50 px-4 py-3 text-sm font-semibold text-ccg-green-900 ring-1 ring-ccg-green-700/30"
-        >
-          {toast}
+      {/* Confirmação e teste de envio de e-mail */}
+      {envStatus && (
+        <div className="flex flex-col justify-between gap-4 rounded-2xl border border-border-subtle bg-white p-5 shadow-xs lg:flex-row lg:items-center">
+          <div className="space-y-1.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-ink-muted">
+                Confirmação de E-mail
+              </span>
+              {envStatus.mailer?.configured ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-ccg-green-100 px-2.5 py-0.5 text-xs font-bold text-ccg-green-900">
+                  <span className="h-2 w-2 rounded-full bg-ccg-green-700" aria-hidden="true" />
+                  {envStatus.mailer.provider === 'brevo'
+                    ? `Brevo API (HTTPS) • ${envStatus.mailer.host}`
+                    : `SMTP: ${envStatus.mailer.host}:${envStatus.mailer.port}`}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold text-amber-950">
+                  <span className="h-2 w-2 rounded-full bg-amber-600" aria-hidden="true" />
+                  Serviço de e-mail não configurado
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-ink-secondary">
+              {envStatus.mailer?.from ? (
+                <>
+                  Remetente: <strong className="text-ink-primary">{envStatus.mailer.from}</strong>{' '}
+                  •{' '}
+                </>
+              ) : null}
+              Orçamentos: <strong className="text-ink-primary">{envStatus.mailer?.quoteTo}</strong>{' '}
+              • RH: <strong className="text-ink-primary">{envStatus.mailer?.rhTo}</strong>
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              disabled={!envStatus.mailer?.configured || testingEmailTarget !== null}
+              onClick={() => void handleTestEmail('orcamento')}
+              className="inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-xl border border-ccg-green-800 bg-ccg-green-50 px-4 text-xs font-bold text-ccg-green-900 transition-colors hover:bg-ccg-green-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {testingEmailTarget === 'orcamento' ? 'Enviando teste...' : 'Testar e-mail Orçamentos'}
+            </button>
+            <button
+              type="button"
+              disabled={!envStatus.mailer?.configured || testingEmailTarget !== null}
+              onClick={() => void handleTestEmail('rh')}
+              className="inline-flex min-h-[40px] cursor-pointer items-center justify-center rounded-xl bg-ccg-green-800 px-4 text-xs font-bold text-white transition-colors hover:bg-ccg-green-900 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {testingEmailTarget === 'rh' ? 'Enviando teste...' : 'Testar e-mail RH'}
+            </button>
+          </div>
         </div>
       )}
 
@@ -685,7 +672,7 @@ export function AdminVagasManager() {
                       disabledTitle="Altere o status da vaga para Aberta para compartilhar o link público"
                       ariaLabel={`Compartilhar vaga ${vaga.titulo}`}
                       onCopied={() =>
-                        showToast(`Link da vaga "${vaga.titulo}" copiado para a área de transferência!`)
+                        notifySuccess(`Link da vaga "${vaga.titulo}" copiado para a área de transferência!`)
                       }
                     />
                     <button

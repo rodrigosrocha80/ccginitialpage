@@ -54,3 +54,26 @@ CREATE INDEX IF NOT EXISTS idx_vagas_status ON vagas(status);
 CREATE INDEX IF NOT EXISTS idx_candidaturas_vaga_id ON candidaturas(vaga_id);
 CREATE INDEX IF NOT EXISTS idx_candidaturas_status ON candidaturas(status);
 CREATE INDEX IF NOT EXISTS idx_candidaturas_created_at ON candidaturas(created_at DESC);
+
+CREATE TABLE IF NOT EXISTS orcamentos (
+  id UUID PRIMARY KEY,
+  protocolo TEXT NOT NULL,
+  nome TEXT NOT NULL,
+  telefone TEXT NOT NULL,
+  email TEXT NOT NULL,
+  equipamento_interesse TEXT,
+  mensagem TEXT NOT NULL,
+  consentimento_lgpd BOOLEAN NOT NULL DEFAULT true,
+  origem TEXT NOT NULL DEFAULT 'site_orcamento',
+  status TEXT NOT NULL DEFAULT 'novo',
+  email_enviado BOOLEAN NOT NULL DEFAULT false,
+  crm_sync_status TEXT NOT NULL DEFAULT 'pendente',
+  crm_external_id TEXT,
+  crm_synced_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_orcamentos_created_at ON orcamentos(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_orcamentos_crm_sync_status ON orcamentos(crm_sync_status);
+CREATE INDEX IF NOT EXISTS idx_orcamentos_status ON orcamentos(status);

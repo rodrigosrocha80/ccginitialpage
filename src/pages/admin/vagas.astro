@@ -1,9 +1,17 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import PageHero from '@/components/PageHero.astro';
+import { AdminLoginForm } from '@/components/AdminLoginForm';
 import { AdminVagasManager } from '@/components/AdminVagasManager';
+import { getAdminSession } from '@/lib/adminAuth';
 
 export const prerender = false;
+
+const session = getAdminSession(Astro.request);
+const turnstileSiteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY || '';
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex, nofollow');
 ---
 
 <BaseLayout
@@ -19,7 +27,11 @@ export const prerender = false;
 
   <section class="py-10 sm:py-14">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <AdminVagasManager client:load />
+      {session ? (
+        <AdminVagasManager client:load initialUser={session.user} />
+      ) : (
+        <AdminLoginForm client:load turnstileSiteKey={turnstileSiteKey} />
+      )}
     </div>
   </section>
 </BaseLayout>

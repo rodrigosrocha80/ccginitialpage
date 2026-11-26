@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent, type SyntheticEvent } from 'react';
-import { upload } from '@vercel/blob/client';
+import { upload, uploadPresigned } from '@vercel/blob/client';
 import { ShareBadge } from '@/components/ShareBadge';
 import {
   ALLOWED_RESUME_EXTENSIONS,
@@ -9,6 +9,7 @@ import {
   type Vaga,
 } from '@/lib/careersSchema';
 import { buildVagaShareData } from '@/lib/share';
+import { showToast } from '@/lib/toast';
 
 interface TurnstileApi {
   render: (
@@ -33,7 +34,7 @@ declare global {
 
 interface VagasPortalProps {
   initialVagas: Vaga[];
-  uploadMode: 'vercel_blob' | 'local' | 'unconfigured';
+  uploadMode: 'vercel_blob_presigned' | 'vercel_blob' | 'local' | 'unconfigured';
   blobAccess: 'private' | 'public';
   turnstileSiteKey?: string;
 }
@@ -78,7 +79,6 @@ export function VagasPortal({
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
   const [cidadeUf, setCidadeUf] = useState('');
-  const [cpf, setCpf] = useState('');
   const [cnh, setCnh] = useState('');
   const [experienciaResumo, setExperienciaResumo] = useState('');
   const [pretensaoSalarial, setPretensaoSalarial] = useState('');
@@ -97,6 +97,7 @@ export function VagasPortal({
   const [status, setStatus] = useState<'idle' | 'uploading' | 'submitting' | 'success' | 'error'>('idle');
   const [feedback, setFeedback] = useState('');
   const [protocolo, setProtocolo] = useState('');
+  const [emailSent, setEmailSent] = useState<boolean | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const formRef = useRef<HTMLDivElement | null>(null);
@@ -226,6 +227,8 @@ export function VagasPortal({
     setVagaDetalhes(null);
     setStatus('idle');
     setFeedback('');
+    setProtocolo('');
+    setEmailSent(null);
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -306,6 +309,9 @@ export function VagasPortal({
       setUploadProgress(25);
       const fd = new FormData();
       fd.append('file', file);
+      if (turnstileToken) {
+        fd.append('turnstileToken', turnstileToken);
+      }
       const res = await fetch('/api/curriculos/upload-local', {
         method: 'POST',
         body: fd,
@@ -333,9 +339,11 @@ export function VagasPortal({
 
     // Upload direto do navegador para Vercel Blob (suporta até 10 MB sem bater no limite de 4.5 MB de Functions)
     const pathname = `curriculos/${Date.now()}-${sanitizeSlugName(file.name)}`;
-    const blob = await upload(pathname, file, {
+    const uploader = uploadMode === 'vercel_blob_presigned' ? uploadPresigned : upload;
+    const blob = await uploader(pathname, file, {
       access: blobAccess,
       handleUploadUrl: '/api/curriculos/upload',
+      clientPayload: JSON.stringify({ turnstileToken: turnstileToken || undefined }),
       onUploadProgress: (evt) => {
         if (evt.percentage !== undefined) {
           setUploadProgress(Math.round(evt.percentage));
@@ -357,18 +365,31 @@ export function VagasPortal({
     setFieldErrors({});
     setFeedback('');
     setProtocolo('');
+    setEmailSent(null);
 
     const errs = validateForm();
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs);
       setStatus('error');
-      setFeedback('Revise os campos destacados antes de enviar sua candidatura.');
+      const errMsg = 'Revise os campos destacados antes de enviar sua candidatura.';
+      setFeedback(errMsg);
+      showToast({
+        variant: 'error',
+        title: 'Revise os dados da candidatura',
+        description: errMsg,
+      });
       return;
     }
 
     if (turnstileSiteKey && !turnstileToken) {
       setStatus('error');
-      setFeedback('Conclua a verificação anti-spam antes de enviar.');
+      const errMsg = 'Conclua a verificação anti-spam antes de enviar.';
+      setFeedback(errMsg);
+      showToast({
+        variant: 'error',
+        title: 'Verificação anti-spam necessária',
+        description: errMsg,
+      });
       return;
     }
 
@@ -390,7 +411,6 @@ export function VagasPortal({
           email: email.trim(),
           telefone: telefone.trim(),
           cidadeUf: cidadeUf.trim(),
-          cpf: cpf.trim() || null,
           cnh: cnh.trim() || null,
           experienciaResumo: experienciaResumo.trim(),
           pretensaoSalarial: pretensaoSalarial.trim() || null,
@@ -412,28 +432,57 @@ export function VagasPortal({
         ok?: boolean;
         message?: string;
         protocolo?: string;
+        emailSent?: boolean;
         fieldErrors?: Record<string, string>;
       };
 
       if (!res.ok || !json.ok) {
         setStatus('error');
         if (json.fieldErrors) setFieldErrors(json.fieldErrors);
-        setFeedback(json.message || 'Não foi possível concluir sua candidatura.');
+        const errMsg = json.message || 'Não foi possível concluir sua candidatura.';
+        setFeedback(errMsg);
+        showToast({
+          variant: 'error',
+          title: 'Falha ao enviar candidatura',
+          description: errMsg,
+        });
         resetTurnstile();
         return;
       }
 
+      const feedbackMsg =
+        json.message ||
+        'Candidatura registrada com sucesso! Nossa equipe de RH analisará seu perfil.';
+      const confirmedEmail = json.emailSent === true;
       setStatus('success');
       setProtocolo(json.protocolo || '');
-      setFeedback(
-        json.message ||
-          'Candidatura registrada com sucesso! Nossa equipe de RH analisará seu perfil.'
-      );
+      setEmailSent(typeof json.emailSent === 'boolean' ? json.emailSent : null);
+      setFeedback(feedbackMsg);
+
+      if (confirmedEmail) {
+        showToast({
+          variant: 'success',
+          title: 'Candidatura enviada com sucesso!',
+          description: feedbackMsg,
+          badge: json.protocolo ? `Protocolo #${json.protocolo}` : undefined,
+          meta: 'Notificação enviada ao RH por e-mail',
+          durationMs: 7500,
+        });
+      } else {
+        showToast({
+          variant: 'warning',
+          title: 'Candidatura registrada no banco',
+          description: feedbackMsg,
+          badge: json.protocolo ? `Protocolo #${json.protocolo}` : undefined,
+          meta: 'Salvo no banco • E-mail não confirmado',
+          durationMs: 8500,
+        });
+      }
+
       setNome('');
       setEmail('');
       setTelefone('');
       setCidadeUf('');
-      setCpf('');
       setCnh('');
       setExperienciaResumo('');
       setPretensaoSalarial('');
@@ -447,11 +496,16 @@ export function VagasPortal({
     } catch (err) {
       setStatus('error');
       setUploadProgress(0);
-      setFeedback(
+      const errMsg =
         err instanceof Error
           ? err.message
-          : 'Erro de conexão ao enviar sua candidatura. Tente novamente.'
-      );
+          : 'Erro de conexão ao enviar sua candidatura. Tente novamente.';
+      setFeedback(errMsg);
+      showToast({
+        variant: 'error',
+        title: 'Erro ao enviar candidatura',
+        description: errMsg,
+      });
       resetTurnstile();
     }
   };
@@ -931,20 +985,6 @@ export function VagasPortal({
             </div>
 
             <div>
-              <label htmlFor="cand-cpf" className="mb-1.5 block text-sm font-semibold text-ink-primary">
-                CPF <span className="font-normal text-ink-muted">(opcional)</span>
-              </label>
-              <input
-                id="cand-cpf"
-                type="text"
-                value={cpf}
-                onChange={(e) => setCpf(e.target.value)}
-                placeholder="000.000.000-00"
-                className="min-h-[44px] w-full rounded-lg border border-border-subtle bg-surface-canvas px-3.5 text-base text-ink-primary placeholder:text-ink-muted focus:border-ccg-green-700 focus:bg-white focus:outline-none"
-              />
-            </div>
-
-            <div>
               <label htmlFor="cand-cnh" className="mb-1.5 block text-sm font-semibold text-ink-primary">
                 Categoria CNH <span className="font-normal text-ink-muted">(se aplicável)</span>
               </label>
@@ -1164,10 +1204,24 @@ export function VagasPortal({
               }`}
             >
               <p>{feedback}</p>
-              {protocolo && (
-                <p className="mt-1 text-xs font-bold">
-                  Protocolo da candidatura: #{protocolo}
-                </p>
+              {status === 'success' && (protocolo || emailSent !== null) && (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
+                  {protocolo && (
+                    <span className="rounded-md bg-white/80 px-2 py-0.5 font-mono font-bold text-ccg-green-900 ring-1 ring-ccg-green-700/20">
+                      Protocolo da candidatura: #{protocolo}
+                    </span>
+                  )}
+                  {emailSent === true && (
+                    <span className="rounded-md bg-emerald-100/80 px-2 py-0.5 text-emerald-900">
+                      Notificação enviada ao RH por e-mail
+                    </span>
+                  )}
+                  {emailSent === false && (
+                    <span className="rounded-md bg-amber-100 px-2 py-0.5 text-amber-950">
+                      Salvo no banco • E-mail não confirmado
+                    </span>
+                  )}
+                </div>
               )}
             </div>
           )}

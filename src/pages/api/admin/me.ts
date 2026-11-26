@@ -1,32 +1,40 @@
 import type { APIRoute } from 'astro';
-import { getAdminConfig, getAdminSession } from '@/lib/adminAuth';
+import { getAdminSession } from '@/lib/adminAuth';
 import { isPostgresConfigured, isUsingLocalFallback } from '@/lib/careersDb';
+import { getMailerSummary, isMailerConfigured } from '@/lib/mailer';
 import { isVercelBlobConfigured } from '@/lib/resumeStorage';
+import { jsonResponse } from '@/lib/security';
 
 export const prerender = false;
 
 export const GET: APIRoute = async ({ request }) => {
   const session = getAdminSession(request);
-  const cfg = getAdminConfig();
 
-  return new Response(
-    JSON.stringify({
+  if (!session) {
+    return jsonResponse(
+      {
+        ok: true,
+        authenticated: false,
+      },
+      200,
+      { 'Cache-Control': 'private, no-store' }
+    );
+  }
+
+  return jsonResponse(
+    {
       ok: true,
-      authenticated: Boolean(session),
-      user: session?.user || null,
-      isDevFallbackPassword: cfg.isDevFallbackPassword,
+      authenticated: true,
+      user: session.user,
       environment: {
         postgresConfigured: isPostgresConfigured(),
         blobConfigured: isVercelBlobConfigured(),
         localFallback: isUsingLocalFallback(),
+        smtpConfigured: isMailerConfigured(),
+        mailer: getMailerSummary(),
       },
-    }),
-    {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store',
-      },
-    }
+    },
+    200,
+    { 'Cache-Control': 'private, no-store' }
   );
 };

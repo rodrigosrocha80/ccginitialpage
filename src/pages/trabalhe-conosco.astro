@@ -5,7 +5,11 @@ import PageHero from '@/components/PageHero.astro';
 import { VagasPortal } from '@/components/VagasPortal';
 import { SITE } from '@/lib/site';
 import { listPublicVagas } from '@/lib/careersDb';
-import { getBlobAccessMode, isVercelBlobConfigured } from '@/lib/resumeStorage';
+import {
+  getBlobAccessMode,
+  getVercelBlobUploadProtocol,
+  isVercelBlobConfigured,
+} from '@/lib/resumeStorage';
 import { isProdEnvironment } from '@/lib/adminAuth';
 import type { Vaga } from '@/lib/careersSchema';
 import equipeImg from '@/assets/hero/equipe-campo.jpg';
@@ -20,7 +24,9 @@ try {
 }
 
 const uploadMode = isVercelBlobConfigured()
-  ? 'vercel_blob'
+  ? getVercelBlobUploadProtocol() === 'presigned'
+    ? 'vercel_blob_presigned'
+    : 'vercel_blob'
   : isProdEnvironment()
     ? 'unconfigured'
     : 'local';
@@ -44,6 +50,9 @@ const pageDescription = sharedVaga
 const pageOgUrl = sharedVaga
   ? `/trabalhe-conosco?vaga=${encodeURIComponent(sharedVaga.slug)}`
   : undefined;
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=300');
+Astro.response.headers.set('Vary', 'Accept-Encoding');
 ---
 
 <BaseLayout

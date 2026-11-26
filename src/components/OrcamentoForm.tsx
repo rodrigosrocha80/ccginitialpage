@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type SyntheticEvent } from 'react';
 import { buildWhatsAppUrl } from '@/lib/site';
+import { showToast } from '@/lib/toast';
 
 interface TurnstileApi {
   render: (
@@ -60,6 +61,8 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
   const [turnstileToken, setTurnstileToken] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [feedback, setFeedback] = useState('');
+  const [protocolo, setProtocolo] = useState('');
+  const [emailSent, setEmailSent] = useState<boolean | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const turnstileContainerRef = useRef<HTMLDivElement | null>(null);
   const turnstileWidgetIdRef = useRef<string | null>(null);
@@ -149,6 +152,8 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
     e.preventDefault();
     setFieldErrors({});
     setFeedback('');
+    setProtocolo('');
+    setEmailSent(null);
 
     const payload = {
       nome,
@@ -165,13 +170,25 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
     if (Object.keys(errs).length > 0) {
       setFieldErrors(errs);
       setStatus('error');
-      setFeedback('Por favor, revise os campos destacados.');
+      const errMsg = 'Por favor, revise os campos destacados.';
+      setFeedback(errMsg);
+      showToast({
+        variant: 'error',
+        title: 'Campos pendentes no orçamento',
+        description: errMsg,
+      });
       return;
     }
 
     if (turnstileSiteKey && !turnstileToken) {
       setStatus('error');
-      setFeedback('Aguarde ou conclua a verificação anti-spam antes de enviar.');
+      const errMsg = 'Aguarde ou conclua a verificação anti-spam antes de enviar.';
+      setFeedback(errMsg);
+      showToast({
+        variant: 'error',
+        title: 'Verificação anti-spam necessária',
+        description: errMsg,
+      });
       return;
     }
 
@@ -185,24 +202,55 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
       const json = (await res.json()) as {
         ok?: boolean;
         message?: string;
+        protocolo?: string;
+        emailSent?: boolean;
         fieldErrors?: Record<string, string>;
       };
 
       if (!res.ok || !json.ok) {
         setStatus('error');
         if (json.fieldErrors) setFieldErrors(json.fieldErrors);
-        setFeedback(
-          json.message || 'Não foi possível enviar o formulário. Tente novamente ou use o WhatsApp.'
-        );
+        const errMsg =
+          json.message || 'Não foi possível enviar o formulário. Tente novamente ou use o WhatsApp.';
+        setFeedback(errMsg);
+        showToast({
+          variant: 'error',
+          title: 'Não foi possível enviar o orçamento',
+          description: errMsg,
+        });
         resetTurnstile();
         return;
       }
 
-      setStatus('success');
-      setFeedback(
+      const feedbackMsg =
         json.message ||
-          'Solicitação recebida com sucesso! Retornaremos em até 24 horas úteis.'
-      );
+        'Solicitação recebida com sucesso! Retornaremos em até 24 horas úteis.';
+      const confirmedEmail = json.emailSent === true;
+      setStatus('success');
+      setProtocolo(json.protocolo || '');
+      setEmailSent(typeof json.emailSent === 'boolean' ? json.emailSent : null);
+      setFeedback(feedbackMsg);
+
+      if (confirmedEmail) {
+        showToast({
+          variant: 'success',
+          title: 'Orçamento enviado com sucesso!',
+          description: feedbackMsg,
+          badge: json.protocolo ? `Protocolo #${json.protocolo}` : undefined,
+          meta: 'Notificação enviada por e-mail',
+          durationMs: 7500,
+        });
+      } else {
+        showToast({
+          variant: 'warning',
+          title: 'Solicitação registrada no sistema',
+          description: feedbackMsg,
+          badge: json.protocolo ? `Protocolo #${json.protocolo}` : undefined,
+          meta: 'Salvo no banco • E-mail não confirmado',
+          durationMs: 8500,
+        });
+      }
+
       setNome('');
       setTelefone('');
       setEmail('');
@@ -212,9 +260,14 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
       resetTurnstile();
     } catch {
       setStatus('error');
-      setFeedback(
-        'Erro de conexão ao enviar sua solicitação. Utilize o botão de WhatsApp ao lado para atendimento imediato.'
-      );
+      const errMsg =
+        'Erro de conexão ao enviar sua solicitação. Utilize o botão de WhatsApp ao lado para atendimento imediato.';
+      setFeedback(errMsg);
+      showToast({
+        variant: 'error',
+        title: 'Erro de conexão',
+        description: errMsg,
+      });
       resetTurnstile();
     }
   };
@@ -393,6 +446,25 @@ export function OrcamentoForm({ initialEquipment = '', turnstileSiteKey = '' }: 
           }`}
         >
           <p>{feedback}</p>
+          {status === 'success' && (protocolo || emailSent !== null) && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-semibold">
+              {protocolo && (
+                <span className="rounded-md bg-white/80 px-2 py-0.5 font-mono font-bold text-ccg-green-900 ring-1 ring-ccg-green-700/20">
+                  Protocolo #{protocolo}
+                </span>
+              )}
+              {emailSent === true && (
+                <span className="rounded-md bg-emerald-100/80 px-2 py-0.5 text-emerald-900">
+                  Notificação enviada por e-mail
+                </span>
+              )}
+              {emailSent === false && (
+                <span className="rounded-md bg-amber-100 px-2 py-0.5 text-amber-950">
+                  Registrado no banco • E-mail não confirmado
+                </span>
+              )}
+            </div>
+          )}
         </div>
       )}
 

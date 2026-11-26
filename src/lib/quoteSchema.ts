@@ -25,8 +25,8 @@ export const quoteSchema = z.object({
     .refine((v) => v === true, {
       message: 'É necessário concordar com a Política de Privacidade para enviar.',
     }),
-  // Campo honeypot: deve permanecer vazio para envios humanos
-  website: z.string().max(0).optional(),
+  // Campo honeypot: deve permanecer vazio para envios humanos (aceito no schema para resposta silenciosa)
+  website: z.string().max(500).optional(),
   turnstileToken: z.string().optional(),
 });
 
