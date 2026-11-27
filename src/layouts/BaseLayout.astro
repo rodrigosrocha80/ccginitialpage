@@ -12,6 +12,7 @@ import heroDefault from '@/assets/hero/hero-obra-aerea.jpg';
 import logoCcg from '@/assets/brand/logo-ccg.png';
 import archivoLatinWoff2 from '@fontsource-variable/archivo/files/archivo-latin-wght-normal.woff2?url';
 import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
+import Analytics from '@vercel/analytics/astro';
 
 interface Props {
   title: string;
@@ -213,5 +214,6 @@ const schemaOrg = {
     <WhatsAppFloat />
     <CookieConsent ga4Id={ga4Id} clarityId={clarityId} />
     <ToastViewport client:load />
+    <Analytics />
   </body>
 </html>
